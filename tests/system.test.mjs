@@ -1,0 +1,38 @@
+import assert from 'node:assert/strict';
+import {writeFileSync,readdirSync} from 'node:fs';
+process.env.GYM_TEST_MODE='1';
+const {pool}=await import('../backend/src/config/database.ts');
+import {digest} from '../backend/src/utils/security.ts';
+const base='http://127.0.0.1:3100',results=[];
+const check=(name,condition)=>{assert(condition,name);results.push({name,status:'PASS'});};
+async function post(path,body,cookie='',csrf='',origin=base){const r=await fetch(base+path,{method:'POST',headers:{Origin:origin,'Content-Type':'application/json',Cookie:cookie,'X-CSRF-Token':csrf},body:JSON.stringify(body),redirect:'manual'});const text=await r.text();let d;try{d=JSON.parse(text);}catch{d={error:text};}return {r,d};}
+async function login(username,password){const {r,d}=await post('/api/auth',{action:'login',username,password});check('Đăng nhập '+username,r.status===200);return {cookie:r.headers.get('set-cookie').split(';')[0],csrf:d.csrf,header:r.headers.get('set-cookie')};}
+const a=await login('admin','GymAdmin2026!');
+check('Cookie HttpOnly',a.header.includes('HttpOnly'));check('Cookie SameSite=Strict',a.header.includes('SameSite=Strict'));
+check('API 401 khi chưa đăng nhập',(await fetch(base+'/api/gym')).status===401);
+for(const body of [{username:'',password:'x'},{username:'admin',password:''}])check('Login thiếu trường: 400',(await post('/api/auth',{action:'login',...body})).r.status===400);
+check('Sai tài khoản: 401',(await post('/api/auth',{action:'login',username:'system-wrong-'+Date.now(),password:'Wrong2026!'})).r.status===401);
+check('SQL injection không đăng nhập',(await post('/api/auth',{action:'login',username:"' OR 1=1 --",password:'Wrong2026!'})).r.status===401);
+check('Chặn CSRF sai',(await post('/api/gym',{action:'member.save'},a.cookie,'invalid')).r.status===403);
+check('Chặn Origin khác',(await post('/api/gym',{action:'member.save'},a.cookie,a.csrf,'https://other.example')).r.status===403);
+const state=await (await fetch(base+'/api/gym',{headers:{Cookie:a.cookie}})).json();check('API không lộ hash mật khẩu',!JSON.stringify(state).includes('password_hash'));
+const coach=await login('coach1','GymCoach2026!');
+check('HLV không ghi thanh toán',(await post('/api/gym',{action:'payment.create'},coach.cookie,coach.csrf)).r.status===403);
+const cdata=await (await fetch(base+'/api/gym',{headers:{Cookie:coach.cookie}})).json();check('HLV không nhận danh sách tài khoản',cdata.users.length===0);check('HLV không nhận số tiền giao dịch',cdata.payments.every(p=>p.amount===0));
+check('HLV không nhận tài khoản qua API',cdata.users.length===0);
+const u='sys'+Date.now(),created=await post('/api/gym',{action:'user.save',name:'System Test',username:u,password:'SystemTest2026!',phone:'094'+String(Date.now()).slice(-7),role:'STAFF',active:1},a.cookie,a.csrf);
+check('Tạo tài khoản System Test',created.r.status===200);const staff=await login(u,'SystemTest2026!');
+check('STAFF không quản trị nhân viên',(await post('/api/gym',{action:'user.save'},staff.cookie,staff.csrf)).r.status===403);
+await post('/api/gym',{action:'user.toggle',id:created.d.id,active:false},a.cookie,a.csrf);
+check('Khóa thu hồi phiên',(await fetch(base+'/api/gym',{headers:{Cookie:staff.cookie}})).status===401);
+check('Tài khoản khóa không đăng nhập',(await post('/api/auth',{action:'login',username:u,password:'SystemTest2026!'})).r.status===401);
+await post('/api/gym',{action:'user.toggle',id:created.d.id,active:true},a.cookie,a.csrf);const reopened=await login(u,'SystemTest2026!');
+await pool.execute('UPDATE sessions SET expires_at=? WHERE id=?',['2000-01-01 00:00:00',await digest(reopened.cookie.split('=')[1])]);
+check('Hết hạn session bị từ chối',(await fetch(base+'/api/gym',{headers:{Cookie:reopened.cookie}})).status===401);
+const key='rate-'+Date.now();for(let i=0;i<5;i++)await post('/api/auth',{action:'login',username:key,password:'Wrong2026!'});
+check('Giới hạn lần thử đăng nhập',(await post('/api/auth',{action:'login',username:key,password:'Wrong2026!'})).r.status===429);
+await post('/api/auth',{action:'logout'},a.cookie,a.csrf);
+check('Logout vô hiệu hóa cookie cũ',(await fetch(base+'/api/gym',{headers:{Cookie:a.cookie}})).status===401);
+check('Phiên đã đăng xuất không đọc được API',(await fetch(base+'/api/auth',{headers:{Cookie:a.cookie}})).status===401);
+await pool.end();
+writeFileSync('outputs/system-results.json',JSON.stringify({executedAt:new Date().toISOString(),results},null,2));console.log('PASS: '+results.length+' system checks.');

@@ -1,0 +1,562 @@
+[
+  {
+    "id": "TC_LOGIN_001",
+    "module": "Đăng nhập",
+    "title": "Đúng tài khoản",
+    "data": "admin / GymAdmin2026!",
+    "steps": "Mở /login; nhập thông tin; bấm Đăng nhập",
+    "expected": "Vào tổng quan, hiện vai trò Admin"
+  },
+  {
+    "id": "TC_LOGIN_002",
+    "module": "Đăng nhập",
+    "title": "Sai mật khẩu",
+    "data": "admin / Wrong2026!",
+    "steps": "Nhập tài khoản đúng và mật khẩu sai; bấm Đăng nhập",
+    "expected": "Hiện lỗi; không tạo phiên"
+  },
+  {
+    "id": "TC_LOGIN_003",
+    "module": "Đăng nhập",
+    "title": "Username trống",
+    "data": "username rỗng",
+    "steps": "Để trống tên đăng nhập; nhập mật khẩu; gửi form",
+    "expected": "Chặn gửi hoặc API trả 400"
+  },
+  {
+    "id": "TC_LOGIN_004",
+    "module": "Đăng nhập",
+    "title": "Password trống",
+    "data": "password rỗng",
+    "steps": "Nhập username; bỏ trống password; gửi form",
+    "expected": "Chặn gửi hoặc API trả 400"
+  },
+  {
+    "id": "TC_LOGIN_005",
+    "module": "Đăng nhập",
+    "title": "Sai cả hai trường",
+    "data": "unknown / Wrong2026!",
+    "steps": "Nhập hai trường sai; gửi form",
+    "expected": "Lỗi chung, không tiết lộ tài khoản tồn tại"
+  },
+  {
+    "id": "TC_LOGIN_006",
+    "module": "Đăng nhập",
+    "title": "Không lưu mật khẩu rõ",
+    "data": "Tài khoản mới",
+    "steps": "Tạo tài khoản; kiểm tra dữ liệu lưu bằng công cụ test",
+    "expected": "password_hash có salt; mật khẩu rõ không xuất hiện"
+  },
+  {
+    "id": "TC_LOGIN_007",
+    "module": "Đăng nhập",
+    "title": "Đăng xuất vô hiệu hóa phiên",
+    "data": "Phiên hợp lệ",
+    "steps": "Đăng xuất; gọi lại /api/gym; truy cập /admin/users",
+    "expected": "API 401; trang chuyển về /login"
+  },
+  {
+    "id": "TC_LOGIN_008",
+    "module": "Đăng nhập",
+    "title": "Giới hạn đăng nhập sai",
+    "data": "username chưa dùng; sai 6 lần",
+    "steps": "Gửi 6 lần trong 15 phút với cùng username",
+    "expected": "Lần vượt giới hạn trả 429"
+  },
+  {
+    "id": "TC_MEMBER_001",
+    "module": "Hội viên",
+    "title": "Thêm hợp lệ",
+    "data": "Nguyễn An; 0901234567; 2000-01-01",
+    "steps": "Vào Hội viên; Thêm; nhập dữ liệu; Lưu",
+    "expected": "Tạo một hồ sơ có mã duy nhất"
+  },
+  {
+    "id": "TC_MEMBER_002",
+    "module": "Hội viên",
+    "title": "Tên trống",
+    "data": "name=\"\"",
+    "steps": "Mở form; để trống họ tên; Lưu",
+    "expected": "Không tạo hồ sơ; báo thiếu tên"
+  },
+  {
+    "id": "TC_MEMBER_003",
+    "module": "Hội viên",
+    "title": "Email sai",
+    "data": "abc@",
+    "steps": "Nhập hội viên với email sai; Lưu",
+    "expected": "Báo email không hợp lệ"
+  },
+  {
+    "id": "TC_MEMBER_004",
+    "module": "Hội viên",
+    "title": "Điện thoại sai",
+    "data": "12345",
+    "steps": "Nhập số điện thoại sai; Lưu",
+    "expected": "Chặn số không đủ 10 chữ số bắt đầu 0"
+  },
+  {
+    "id": "TC_MEMBER_005",
+    "module": "Hội viên",
+    "title": "Điện thoại trùng",
+    "data": "Số đã có cả hồ sơ lưu trữ",
+    "steps": "Tạo hội viên dùng SĐT đã tồn tại",
+    "expected": "Không tạo bản ghi thứ hai; HTTP 409"
+  },
+  {
+    "id": "TC_MEMBER_006",
+    "module": "Hội viên",
+    "title": "Ngày sinh tương lai",
+    "data": "2999-01-01",
+    "steps": "Nhập ngày sinh tương lai; Lưu",
+    "expected": "Chặn dữ liệu không hợp lệ"
+  },
+  {
+    "id": "TC_MEMBER_007",
+    "module": "Hội viên",
+    "title": "Sửa hồ sơ",
+    "data": "Tên đã sửa; địa chỉ mới",
+    "steps": "Tìm hồ sơ; Sửa; lưu và mở chi tiết",
+    "expected": "Tên/địa chỉ mới được lưu, mã không đổi"
+  },
+  {
+    "id": "TC_MEMBER_008",
+    "module": "Hội viên",
+    "title": "Xóa và khôi phục",
+    "data": "Hội viên đang quản lý",
+    "steps": "Xóa; xác nhận; lọc Đã lưu trữ; Khôi phục",
+    "expected": "Ẩn khỏi danh sách chính rồi khôi phục; lịch sử giữ nguyên"
+  },
+  {
+    "id": "TC_MEMBER_009",
+    "module": "Hội viên",
+    "title": "Tìm kiếm không có kết quả",
+    "data": "không-tồn-tại-xyz",
+    "steps": "Tìm chuỗi không tồn tại",
+    "expected": "Hiện trạng thái rỗng, không lỗi"
+  },
+  {
+    "id": "TC_MEMBER_010",
+    "module": "Hội viên",
+    "title": "Phân trang",
+    "data": "Ít nhất 9 hội viên",
+    "steps": "Bấm Sau; kiểm tra Trang 2; tìm kiếm lại",
+    "expected": "Trang chuyển đúng; tìm kiếm đưa về trang 1"
+  },
+  {
+    "id": "TC_MEMBER_011",
+    "module": "Hội viên",
+    "title": "Xem đầy đủ chi tiết",
+    "data": "Hội viên có hóa đơn",
+    "steps": "Bấm tên hội viên",
+    "expected": "Hiện mã, tên, ngày sinh, liên hệ, địa chỉ, ngày đăng ký, gói, hạn, trạng thái"
+  },
+  {
+    "id": "TC_MEMBER_012",
+    "module": "Hội viên",
+    "title": "Xuất CSV",
+    "data": "Danh sách đang lọc",
+    "steps": "Bấm Xuất CSV; đọc tệp",
+    "expected": "Xuất đúng tập lọc, tiếng Việt, không thực thi công thức đầu ô"
+  },
+  {
+    "id": "TC_PLAN_001",
+    "module": "Gói tập",
+    "title": "Thêm hợp lệ",
+    "data": "30 ngày; 350000 đồng",
+    "steps": "Admin mở Gói tập; Thêm; Lưu",
+    "expected": "Gói hiển thị và chọn được khi đăng ký"
+  },
+  {
+    "id": "TC_PLAN_002",
+    "module": "Gói tập",
+    "title": "Sửa giá",
+    "data": "500000 đồng",
+    "steps": "Sửa gói đã có giao dịch",
+    "expected": "Giá mới áp dụng lượt mua mới; giá cũ hóa đơn giữ nguyên"
+  },
+  {
+    "id": "TC_PLAN_003",
+    "module": "Gói tập",
+    "title": "Xóa gói đã bán",
+    "data": "Gói có hóa đơn",
+    "steps": "Xóa; xác nhận; kiểm tra hóa đơn cũ",
+    "expected": "Gói biến khỏi danh sách; lịch sử và hiệu lực cũ còn nguyên"
+  },
+  {
+    "id": "TC_PLAN_004",
+    "module": "Gói tập",
+    "title": "Giá bằng 0",
+    "data": "price=0",
+    "steps": "Gửi gói giá 0",
+    "expected": "Bị từ chối"
+  },
+  {
+    "id": "TC_PLAN_005",
+    "module": "Gói tập",
+    "title": "Giá âm",
+    "data": "price=-1",
+    "steps": "Gửi gói giá âm",
+    "expected": "Bị từ chối"
+  },
+  {
+    "id": "TC_PLAN_006",
+    "module": "Gói tập",
+    "title": "Tên trống",
+    "data": "name=\"\"",
+    "steps": "Thêm gói không có tên",
+    "expected": "Bị từ chối"
+  },
+  {
+    "id": "TC_PLAN_007",
+    "module": "Gói tập",
+    "title": "Tạm ngưng và mở lại",
+    "data": "Gói đang áp dụng",
+    "steps": "Tạm ngưng; xem form đăng ký; mở lại",
+    "expected": "Gói tạm ngưng không chọn được; mở lại chọn được"
+  },
+  {
+    "id": "TC_TRAINER_001",
+    "module": "HLV",
+    "title": "Thêm hợp lệ",
+    "data": "HLV An; 0981234567; Yoga; 0 năm; Thứ 2",
+    "steps": "Admin thêm HLV",
+    "expected": "Lưu đủ trường; kinh nghiệm 0 hợp lệ"
+  },
+  {
+    "id": "TC_TRAINER_002",
+    "module": "HLV",
+    "title": "Sửa chuyên môn",
+    "data": "Yoga → Boxing",
+    "steps": "Tìm HLV; sửa; lưu",
+    "expected": "Chuyên môn mới hiển thị"
+  },
+  {
+    "id": "TC_TRAINER_003",
+    "module": "HLV",
+    "title": "Xóa HLV",
+    "data": "HLV mẫu",
+    "steps": "Xóa; xác nhận; tìm lại",
+    "expected": "Không còn trong danh sách"
+  },
+  {
+    "id": "TC_TRAINER_004",
+    "module": "HLV",
+    "title": "Kinh nghiệm âm",
+    "data": "experience=-1",
+    "steps": "Gửi dữ liệu HLV kinh nghiệm âm",
+    "expected": "Bị từ chối"
+  },
+  {
+    "id": "TC_USER_001",
+    "module": "Nhân viên",
+    "title": "Tạo tài khoản",
+    "data": "staff-test / GymStaff2026!",
+    "steps": "Admin thêm nhân viên với vai trò STAFF",
+    "expected": "Tài khoản tạo được, mật khẩu băm"
+  },
+  {
+    "id": "TC_USER_002",
+    "module": "Nhân viên",
+    "title": "Khóa tài khoản đang đăng nhập",
+    "data": "Một STAFF có phiên",
+    "steps": "Admin khóa; STAFF gọi API",
+    "expected": "Phiên cũ bị thu hồi; API 401"
+  },
+  {
+    "id": "TC_USER_003",
+    "module": "Nhân viên",
+    "title": "Mở khóa",
+    "data": "Tài khoản đã khóa",
+    "steps": "Admin mở khóa; đăng nhập lại",
+    "expected": "Đăng nhập thành công bằng mật khẩu cũ"
+  },
+  {
+    "id": "TC_USER_004",
+    "module": "Nhân viên",
+    "title": "Phân quyền",
+    "data": "STAFF → TRAINER",
+    "steps": "Admin đổi quyền; tài khoản đăng nhập lại",
+    "expected": "Chỉ có chức năng được phép; phiên trước bị thu hồi"
+  },
+  {
+    "id": "TC_USER_005",
+    "module": "Nhân viên",
+    "title": "Không tự khóa Admin",
+    "data": "Admin đang dùng",
+    "steps": "Admin tự khóa tài khoản",
+    "expected": "Từ chối; luôn giữ ít nhất một Admin hoạt động"
+  },
+  {
+    "id": "TC_USER_006",
+    "module": "Nhân viên",
+    "title": "Mật khẩu yếu",
+    "data": "12345678",
+    "steps": "Tạo tài khoản chỉ có số",
+    "expected": "Từ chối; yêu cầu 8–128 ký tự có chữ và số"
+  },
+  {
+    "id": "TC_ROOM_001",
+    "module": "Phòng tập",
+    "title": "CRUD phòng",
+    "data": "Gym A; Gym; 50",
+    "steps": "Thêm; sửa sức chứa; xem; xóa phòng không có thiết bị",
+    "expected": "Các thao tác lưu đúng dữ liệu"
+  },
+  {
+    "id": "TC_ROOM_002",
+    "module": "Phòng tập",
+    "title": "Sức chứa bằng 0",
+    "data": "capacity=0",
+    "steps": "Thêm phòng sức chứa 0",
+    "expected": "Bị từ chối"
+  },
+  {
+    "id": "TC_ROOM_003",
+    "module": "Phòng tập",
+    "title": "Xóa phòng còn thiết bị",
+    "data": "Phòng có thiết bị",
+    "steps": "Xóa phòng",
+    "expected": "Từ chối 409 và hướng dẫn di chuyển/xóa thiết bị"
+  },
+  {
+    "id": "TC_EQUIP_001",
+    "module": "Thiết bị",
+    "title": "Thêm hợp lệ",
+    "data": "Máy chạy; phòng Gym; 1; 2026-01-01; Tốt",
+    "steps": "Thêm thiết bị vào phòng đang hoạt động",
+    "expected": "Lưu đủ dữ liệu"
+  },
+  {
+    "id": "TC_EQUIP_002",
+    "module": "Thiết bị",
+    "title": "Chuyển bảo trì",
+    "data": "Tốt → Đang bảo trì",
+    "steps": "Sửa thiết bị; đổi tình trạng; lọc",
+    "expected": "Hiển thị trong nhóm bảo trì"
+  },
+  {
+    "id": "TC_EQUIP_003",
+    "module": "Thiết bị",
+    "title": "Xóa thiết bị",
+    "data": "Thiết bị mẫu",
+    "steps": "Xóa; xác nhận; tìm lại",
+    "expected": "Ẩn khỏi danh sách"
+  },
+  {
+    "id": "TC_EQUIP_004",
+    "module": "Thiết bị",
+    "title": "Tình trạng không hợp lệ",
+    "data": "condition=Không rõ",
+    "steps": "Gửi API với tình trạng ngoài danh sách",
+    "expected": "Bị từ chối"
+  },
+  {
+    "id": "TC_EQUIP_005",
+    "module": "Thiết bị",
+    "title": "Số lượng bằng 0",
+    "data": "quantity=0",
+    "steps": "Gửi dữ liệu số lượng 0",
+    "expected": "Bị từ chối"
+  },
+  {
+    "id": "TC_REG_001",
+    "module": "Đăng ký gói",
+    "title": "Đăng ký hợp lệ",
+    "data": "Hội viên mới; 30 ngày; ngày mai",
+    "steps": "Chọn hội viên/gói/ngày; xem tổng; xác nhận thu tiền",
+    "expected": "Tạo hóa đơn, kết thúc = bắt đầu + 29 ngày"
+  },
+  {
+    "id": "TC_REG_002",
+    "module": "Đăng ký gói",
+    "title": "Không chọn hội viên",
+    "data": "member_id=\"\"",
+    "steps": "Mở thanh toán; bỏ trống hội viên; xác nhận",
+    "expected": "Không tạo hóa đơn"
+  },
+  {
+    "id": "TC_REG_003",
+    "module": "Đăng ký gói",
+    "title": "Không chọn gói",
+    "data": "plan_id=\"\"",
+    "steps": "Bỏ trống gói; xác nhận",
+    "expected": "Không tạo hóa đơn"
+  },
+  {
+    "id": "TC_REG_004",
+    "module": "Đăng ký gói",
+    "title": "Ngày sai hoặc trong quá khứ",
+    "data": "2026-02-30 hoặc hôm qua",
+    "steps": "Gửi đăng ký ngày không hợp lệ",
+    "expected": "Bị từ chối"
+  },
+  {
+    "id": "TC_REG_005",
+    "module": "Đăng ký gói",
+    "title": "Gói không hoạt động",
+    "data": "Gói tạm ngưng",
+    "steps": "Gửi API đăng ký gói tạm ngưng",
+    "expected": "Bị từ chối"
+  },
+  {
+    "id": "TC_REG_006",
+    "module": "Đăng ký gói",
+    "title": "Khoảng thời gian trùng",
+    "data": "Hội viên có gói hiện tại",
+    "steps": "Chọn ngày trong gói cũ; xác nhận",
+    "expected": "409; không tạo hóa đơn trùng hạn"
+  },
+  {
+    "id": "TC_REG_007",
+    "module": "Đăng ký gói",
+    "title": "Gia hạn tự động",
+    "data": "Hội viên còn hạn",
+    "steps": "Gia hạn; để ngày trống; xác nhận",
+    "expected": "Bắt đầu ngày kế sau hạn cuối"
+  },
+  {
+    "id": "TC_CHECK_001",
+    "module": "Check-in/out",
+    "title": "Hội viên còn hạn",
+    "data": "Gói có hiệu lực hôm nay",
+    "steps": "Tìm hội viên; Check-in",
+    "expected": "Ghi thời gian vào; nút đổi Check-out"
+  },
+  {
+    "id": "TC_CHECK_002",
+    "module": "Check-in/out",
+    "title": "Hội viên hết hạn",
+    "data": "Gói kết thúc hôm qua",
+    "steps": "Tìm và gọi check-in",
+    "expected": "UI chặn; API từ chối"
+  },
+  {
+    "id": "TC_CHECK_003",
+    "module": "Check-in/out",
+    "title": "Hai lần chưa check-out",
+    "data": "Hội viên đang trong phòng",
+    "steps": "Gửi check-in lần hai",
+    "expected": "409; chỉ một lượt đang mở"
+  },
+  {
+    "id": "TC_CHECK_004",
+    "module": "Check-in/out",
+    "title": "Check-out chưa check-in",
+    "data": "Chưa có lượt mở",
+    "steps": "Gửi check-out",
+    "expected": "409; không tạo lịch sử giả"
+  },
+  {
+    "id": "TC_CHECK_005",
+    "module": "Check-in/out",
+    "title": "Check-out hợp lệ",
+    "data": "Có lượt mở",
+    "steps": "Bấm Check-out",
+    "expected": "Lưu thời gian rời phòng"
+  },
+  {
+    "id": "TC_CHECK_006",
+    "module": "Check-in/out",
+    "title": "Vào lại cùng ngày",
+    "data": "Vừa check-out",
+    "steps": "Bấm Check-in lần nữa",
+    "expected": "Tạo lượt mới trong cùng ngày"
+  },
+  {
+    "id": "TC_PAY_001",
+    "module": "Thanh toán",
+    "title": "Giao dịch hợp lệ",
+    "data": "350000; Tiền mặt",
+    "steps": "Chọn hội viên/gói; xác nhận đủ tiền",
+    "expected": "Hóa đơn Đã thanh toán, có mã và hạn tập"
+  },
+  {
+    "id": "TC_PAY_002",
+    "module": "Thanh toán",
+    "title": "Sửa số tiền ở API",
+    "data": "amount=1 thay 350000",
+    "steps": "Gửi yêu cầu bị sửa amount",
+    "expected": "Từ chối; lấy giá tin cậy từ database"
+  },
+  {
+    "id": "TC_PAY_003",
+    "module": "Thanh toán",
+    "title": "Không chọn hội viên",
+    "data": "member_id=\"\"",
+    "steps": "Gửi yêu cầu thiếu hội viên",
+    "expected": "Bị từ chối"
+  },
+  {
+    "id": "TC_PAY_004",
+    "module": "Thanh toán",
+    "title": "Không chọn phương thức",
+    "data": "method=\"\"",
+    "steps": "Bỏ trống phương thức; xác nhận",
+    "expected": "Không tạo hóa đơn"
+  },
+  {
+    "id": "TC_PAY_005",
+    "module": "Thanh toán",
+    "title": "Gửi lặp mã yêu cầu",
+    "data": "Cùng request_id",
+    "steps": "Gửi hai yêu cầu giống nhau; gửi lại nội dung khác",
+    "expected": "Giống nhau tạo một hóa đơn; khác nội dung trả 409"
+  },
+  {
+    "id": "TC_PAY_006",
+    "module": "Thanh toán",
+    "title": "Giá lịch sử bất biến",
+    "data": "Hóa đơn cũ 350000",
+    "steps": "Sửa gói 900000; xem hóa đơn cũ",
+    "expected": "Vẫn 350000"
+  },
+  {
+    "id": "TC_PAY_007",
+    "module": "Thanh toán",
+    "title": "Lọc ngày và hội viên",
+    "data": "Khoảng ngày + một hội viên",
+    "steps": "Chọn bộ lọc; kiểm tra danh sách và tổng",
+    "expected": "Chỉ hiển thị giao dịch thuộc bộ lọc, tính theo giờ Việt Nam"
+  },
+  {
+    "id": "TC_SEC_001",
+    "module": "Bảo mật",
+    "title": "Chặn URL và API Admin",
+    "data": "STAFF/TRAINER",
+    "steps": "Mở /admin/users; gọi user.save",
+    "expected": "Trang báo không có quyền; API 403"
+  },
+  {
+    "id": "TC_SEC_002",
+    "module": "Bảo mật",
+    "title": "CSRF sai",
+    "data": "Phiên hợp lệ; token sai",
+    "steps": "Gửi POST với token hoặc Origin không hợp lệ",
+    "expected": "403; không thay đổi database"
+  },
+  {
+    "id": "TC_SEC_003",
+    "module": "Bảo mật",
+    "title": "Chặn dữ liệu sai kiểu",
+    "data": "name là object",
+    "steps": "Gửi member.save với name object",
+    "expected": "400; không ép object thành tên"
+  },
+  {
+    "id": "TC_DB_001",
+    "module": "Database",
+    "title": "Toàn vẹn dữ liệu",
+    "data": "SQLite sau migration",
+    "steps": "Chạy integrity_check và foreign_key_check",
+    "expected": "ok; không có khóa ngoại sai"
+  },
+  {
+    "id": "TC_DB_002",
+    "module": "Database",
+    "title": "Giữ lịch sử cũ",
+    "data": "Hai lượt cũ cùng hội viên khác ngày",
+    "steps": "Sao lưu; chạy migration mới",
+    "expected": "Số bản ghi giữ nguyên; giờ ra đánh dấu legacy, không bịa timestamp"
+  }
+]

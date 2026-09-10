@@ -1,0 +1,14 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {addDays,todayVN,membership,validateMember,validatePlan} from '../backend/src/utils/gym.ts';
+test('Ngày Việt Nam chuyển ngày đúng ở 17:00 UTC',()=>assert.equal(todayVN(new Date('2026-09-08T17:00:00Z')),'2026-09-09'));
+test('Cộng ngày qua cuối tháng và năm nhuận',()=>{assert.equal(addDays('2024-02-28',2),'2024-03-01');assert.equal(addDays('2026-12-31',1),'2027-01-01');});
+test('Hội viên hợp lệ được chuẩn hóa khoảng trắng',()=>assert.equal(validateMember({name:'  Nguyễn A  ',phone:'0901234567',email:''}).name,'Nguyễn A'));
+test('Chặn tên rỗng, SĐT sai và email sai',()=>{for(const b of [{name:' ',phone:'0901234567'},{name:'An',phone:'123'},{name:'An',phone:'1901234567'},{name:'An',phone:'0901234567',email:'sai@'}])assert.throws(()=>validateMember(b));});
+test('Gói tập chấp nhận hai biên thời hạn',()=>{assert.equal(validatePlan({name:'Gói A',days:1,price:1000}).days,1);assert.equal(validatePlan({name:'Gói B',days:730,price:100000000}).days,730);});
+test('Chặn giá âm, số lẻ và thời hạn ngoài biên',()=>{for(const p of [{days:0,price:1000},{days:731,price:1000},{days:30,price:-1},{days:30,price:1000.5}])assert.throws(()=>validatePlan({name:'Gói A',...p}));});
+const member={id:'m1',archived:0},payments=[{member_id:'m1',start_date:'2026-09-01',end_date:'2026-09-30'}];
+test('Ngày bắt đầu và kết thúc đều được sử dụng',()=>{assert.equal(membership(member,payments,'2026-09-01').status,'Đang hoạt động');assert.equal(membership(member,payments,'2026-09-30').remaining,0);});
+test('Gói tương lai và hết hạn phân biệt đúng',()=>{assert.equal(membership(member,payments,'2026-08-31').status,'Chưa đến hạn');assert.equal(membership(member,payments,'2026-10-01').status,'Hết hạn');});
+test('Hội viên lưu trữ không hiển thị đang hoạt động',()=>assert.equal(membership({...member,archived:1},payments,'2026-09-10').status,'Đã lưu trữ'));
+test('Chọn gói hiện tại khi có một gói gia hạn tương lai',()=>assert.equal(membership(member,[...payments,{member_id:'m1',start_date:'2026-10-01',end_date:'2026-10-30'}],'2026-09-10').current.end_date,'2026-09-30'));

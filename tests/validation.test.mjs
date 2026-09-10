@@ -1,0 +1,13 @@
+import test from 'node:test';import assert from 'node:assert/strict';
+import {dateField,registrationDates,validatePassword,validateEntity,contact} from '../backend/src/utils/validation.ts';
+import {hashPassword,verifyPassword,canMutate,permissions} from '../backend/src/utils/security.ts';
+test('TC_LOGIN_006: mật khẩu băm có salt và kiểm tra đúng/sai',async()=>{const a=await hashPassword('GymTest2026!'),b=await hashPassword('GymTest2026!');assert.notEqual(a,b);assert(!a.includes('GymTest'));assert(await verifyPassword('GymTest2026!',a));assert(!await verifyPassword('SaiMatKhau',a));});
+test('TC_USER_006: mật khẩu yếu bị từ chối',()=>{for(const p of ['', '12345678','abcdefgh','A1'])assert.throws(()=>validatePassword(p));assert.equal(validatePassword('Abcd1234'),'Abcd1234');});
+test('TC_DATE_001: ngày không tồn tại bị từ chối',()=>{for(const d of ['2026-02-30','2026-13-01','abc',null])assert.throws(()=>dateField(d));assert.equal(dateField('2024-02-29'),'2024-02-29');});
+test('TC_REG_004: khoảng ngày và ngày kết thúc',()=>{assert.deepEqual(registrationDates('2026-09-10',30,'2026-09-10'),{start:'2026-09-10',end:'2026-10-09'});assert.throws(()=>registrationDates('2026-09-09',30,'2026-09-10'));assert.deepEqual(registrationDates('2026-09-10',1,'2026-09-10'),{start:'2026-09-10',end:'2026-09-10'});});
+test('TC_SEC_003: từ chối kiểu object thay vì chuỗi liên hệ',()=>assert.throws(()=>contact({name:{x:1},phone:'0901234567'})));
+test('TC_TRAINER_004: kinh nghiệm không được âm',()=>assert.throws(()=>validateEntity('trainer',{name:'An Nam',phone:'0901234567',specialty:'Gym',experience:-1,schedule:'Thứ 2',active:1})));
+test('TC_ROOM_002: sức chứa biên',()=>{assert.equal(validateEntity('room',{name:'Gym',type:'Gym',capacity:1,active:1}).capacity,1);assert.throws(()=>validateEntity('room',{name:'Gym',type:'Gym',capacity:0,active:1}));});
+test('TC_EQUIP_004: không chấp nhận tình trạng ngoài danh sách',()=>assert.throws(()=>validateEntity('equipment',{name:'Máy tập',room_id:'r',quantity:1,purchased_at:'2026-01-01',condition:'Không rõ'})));
+test('TC_EQUIP_005: số lượng phải lớn hơn 0',()=>assert.throws(()=>validateEntity('equipment',{name:'Máy tập',room_id:'r',quantity:0,purchased_at:'2026-01-01',condition:'Tốt'})));
+test('TC_SEC_002: ma trận quyền mặc định từ chối',()=>{assert(!canMutate('TRAINER','payment.create'));assert(!canMutate('STAFF','user.save'));assert(!permissions.TRAINER.includes('users'));assert(canMutate('TRAINER','checkin.checkout'));});

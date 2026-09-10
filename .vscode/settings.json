@@ -1,0 +1,26 @@
+{
+  "files.exclude": {
+    "**/node_modules": true,
+    "**/dist": true,
+    "**/.next": true,
+    "**/.vinext": true,
+    "**/.pnpm-store": true,
+    "**/.wrangler": true,
+    "**/*.tsbuildinfo": true,
+    ".git": true,
+    ".vscode": true,
+    "outputs": true,
+    "scripts": true,
+    "tests": true,
+    ".gitignore": true,
+    "pnpm-lock.yaml": true,
+    "pnpm-workspace.yaml": true,
+    "KIEM_THU.md": true
+  },
+  "search.exclude": {
+    "**/node_modules": true,
+    "outputs": true,
+    "**/dist": true,
+    ".wrangler": true
+  }
+}
