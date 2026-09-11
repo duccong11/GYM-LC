@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {addDays,todayVN,membership,validateMember,validatePlan} from '../backend/src/utils/gym.ts';
+import {addDays,todayVN,membership,validateMember,validatePlan} from '../../backend/src/utils/gym.ts';
 test('Ngày Việt Nam chuyển ngày đúng ở 17:00 UTC',()=>assert.equal(todayVN(new Date('2026-09-08T17:00:00Z')),'2026-09-09'));
 test('Cộng ngày qua cuối tháng và năm nhuận',()=>{assert.equal(addDays('2024-02-28',2),'2024-03-01');assert.equal(addDays('2026-12-31',1),'2027-01-01');});
 test('Hội viên hợp lệ được chuẩn hóa khoảng trắng',()=>assert.equal(validateMember({name:'  Nguyễn A  ',phone:'0901234567',email:''}).name,'Nguyễn A'));

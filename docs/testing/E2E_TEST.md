@@ -1,6 +1,6 @@
 # Kịch bản E2E
 
-Chạy tự động: `pnpm test:e2e`. Dùng database `.wrangler/test-state`, cổng 3100 và trình duyệt Edge headless với profile mới. Mã thực thi: `tests/e2e/gym.spec.ts`. Không dùng database local của bài trình diễn.
+Chạy tự động: `pnpm test:e2e`. Dùng database `.wrangler/test-state`, cổng 3100 và trình duyệt Edge headless với profile mới. Mã thực thi: `tools/tests/e2e/gym.spec.ts`. Không dùng database local của bài trình diễn.
 
 ## E2E-01: Đăng ký hội viên mới
 

@@ -1,6 +1,6 @@
 import test from 'node:test';import assert from 'node:assert/strict';
-import {dateField,registrationDates,validatePassword,validateEntity,contact} from '../backend/src/utils/validation.ts';
-import {hashPassword,verifyPassword,canMutate,permissions} from '../backend/src/utils/security.ts';
+import {dateField,registrationDates,validatePassword,validateEntity,contact} from '../../backend/src/utils/validation.ts';
+import {hashPassword,verifyPassword,canMutate,permissions} from '../../backend/src/utils/security.ts';
 test('TC_LOGIN_006: mật khẩu băm có salt và kiểm tra đúng/sai',async()=>{const a=await hashPassword('GymTest2026!'),b=await hashPassword('GymTest2026!');assert.notEqual(a,b);assert(!a.includes('GymTest'));assert(await verifyPassword('GymTest2026!',a));assert(!await verifyPassword('SaiMatKhau',a));});
 test('TC_USER_006: mật khẩu yếu bị từ chối',()=>{for(const p of ['', '12345678','abcdefgh','A1'])assert.throws(()=>validatePassword(p));assert.equal(validatePassword('Abcd1234'),'Abcd1234');});
 test('TC_DATE_001: ngày không tồn tại bị từ chối',()=>{for(const d of ['2026-02-30','2026-13-01','abc',null])assert.throws(()=>dateField(d));assert.equal(dateField('2024-02-29'),'2024-02-29');});

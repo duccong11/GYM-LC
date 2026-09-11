@@ -5,7 +5,7 @@ from docx.shared import Cm, Pt, RGBColor
 from docx.oxml import OxmlElement
 from docx.oxml.ns import qn
 
-root=Path(__file__).resolve().parent.parent
+root=Path(__file__).resolve().parents[2]
 out=root/'docs'/'word'
 out.mkdir(parents=True, exist_ok=True)
 inputs=[('docs/PROJECT.md','TONG_QUAN_DU_AN.docx'),('backend/README.md','TAI_LIEU_BACKEND.docx'),('frontend/README.md','TAI_LIEU_FRONTEND.docx'),('backend/sql/README.md','CO_SO_DU_LIEU_MYSQL.docx')]

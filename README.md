@@ -74,7 +74,7 @@ Toàn bộ INSERT chạy trong transaction, có lỗi sẽ rollback. Giữ ID v�
 - [Frontend và các màn hình](frontend/README.md)
 - [Schema và kết nối MySQL](backend/sql/README.md)
 - [Bốn tài liệu Word](docs/word)
-- [Hồ sơ kiểm thử](KIEM_THU.md)
+- [Hồ sơ kiểm thử](docs/KIEM_THU.md)
 
 ## Kiểm tra
 
@@ -87,7 +87,7 @@ pnpm build
 
 ```powershell
 pnpm db:test
-node scripts/dev.mjs --test
+node tools/scripts/dev.mjs --test
 # Terminal khác:
 pnpm test:mysql
 pnpm test:system
@@ -100,6 +100,6 @@ Cổng kiểm thử frontend 3100, backend 4100; DB quan_ly_phong_gym_test. Bộ
 
 pnpm build xuất frontend/dist và kiểm tra TypeScript backend. Backend chạy Node với MySQL; frontend cần SPA fallback và proxy /api cùng origin. HTTPS và NODE_ENV=production bật cookie Secure. Phiên bản MVC/MySQL này không còn dùng môi trường D1/Workers của bản cũ.
 
-## Cấu trúc trong VS Code
+# Cấu trúc thư mục thực tế
 
-Explorer ưu tiên backend, frontend, docs, package.json và Chay-GYM.cmd. Các thư mục cache, dependency, kết quả chạy và công cụ được ẩn bằng .vscode/settings.json, không xóa dữ liệu. Muốn xem lại công cụ và kiểm thử, đặt scripts và tests thành false trong files.exclude. Cấu hình lint/format nằm trong scripts/config; cấu hình E2E nằm trong tests/playwright.config.ts.
+backend và frontend chứa code ứng dụng. docs chứa tài liệu. tools/scripts và tools/tests chứa công cụ chạy và kiểm thử. outputs giữ kết quả kiểm chứng và bản sao dữ liệu cũ; không phải source chạy chính. node_modules là thư viện cần để chạy. Các cache .next, .vinext, .pnpm-store và bản dist của nền tảng cũ đã được xóa thực tế. Dữ liệu SQLite gốc được giữ tại outputs/backups/d1-local.

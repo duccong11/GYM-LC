@@ -30,7 +30,7 @@ React 19.2.6, TypeScript 5.9, Vinext 1.0.0-beta.5 trên Vite 8, Cloudflare Worke
 - tests: unit, integration SQLite trong bộ nhớ, system HTTP, E2E Edge.
 
 ## Bảo toàn dữ liệu
-Migration 0000 giữ nguyên. Migration 0001 chỉ tạo bảng/thêm cột, thay ràng buộc điểm danh. Cột checkout_at mặc định legacy cho lịch sử cũ, hiển thị chưa ghi giờ ra; lượt mới ghi NULL khi đang tập. scripts/setup.mjs dùng SQLite backup trước nâng cấp và kiểm tra integrity/foreign_key. Chạy lại migration không lặp ALTER TABLE nhờ nhật ký _gym_migrations.
+Migration 0000 giữ nguyên. Migration 0001 chỉ tạo bảng/thêm cột, thay ràng buộc điểm danh. Cột checkout_at mặc định legacy cho lịch sử cũ, hiển thị chưa ghi giờ ra; lượt mới ghi NULL khi đang tập. tools/scripts/setup.mjs dùng SQLite backup trước nâng cấp và kiểm tra integrity/foreign_key. Chạy lại migration không lặp ALTER TABLE nhờ nhật ký _gym_migrations.
 Dữ liệu mẫu có tiền tố demo-v2; INSERT OR IGNORE không ghi đè mã/username/SĐT có sẵn. Database trình diễn hiện có thêm 15 hội viên nên tổng có thể vượt 20 do giữ dữ liệu cũ. Database test mới có đúng 15 hội viên, 5 gói, 5 nhân viên/quản trị, 5 HLV, 4 phòng và 10 thiết bị.
 
 ## Quyết định nghiệp vụ

@@ -5,11 +5,11 @@
       "C:\\GYM LC\\node_modules\\@playwright\\test\\cli.js",
       "test",
       "--config",
-      "tests/playwright.config.ts",
+      "tools/tests/playwright.config.ts",
       "--list"
     ],
-    "configFile": "C:\\GYM LC\\tests\\playwright.config.ts",
-    "rootDir": "C:/GYM LC/tests/e2e",
+    "configFile": "C:\\GYM LC\\tools\\tests\\playwright.config.ts",
+    "rootDir": "C:/GYM LC/tools/tests/e2e",
     "failOnFlakyTests": false,
     "forbidOnly": false,
     "fullyParallel": false,
@@ -23,13 +23,13 @@
     "preserveOutput": "always",
     "projects": [
       {
-        "outputDir": "C:/GYM LC/tests/outputs/e2e-artifacts",
+        "outputDir": "C:/GYM LC/tools/tests/outputs/e2e-artifacts",
         "repeatEach": 1,
         "retries": 0,
         "metadata": {},
         "id": "",
         "name": "",
-        "testDir": "C:/GYM LC/tests/e2e",
+        "testDir": "C:/GYM LC/tools/tests/e2e",
         "testIgnore": [],
         "testMatch": [
           "**/*.@(spec|test).?(c|m)[jt]s?(x)"
@@ -69,7 +69,7 @@
     "workers": 1,
     "webServer": {
       "cwd": "C:\\GYM LC",
-      "command": "node scripts/dev.mjs --test",
+      "command": "node tools/scripts/dev.mjs --test",
       "url": "http://127.0.0.1:3100/login",
       "reuseExistingServer": true,
       "timeout": 120000
@@ -327,8 +327,8 @@
   ],
   "errors": [],
   "stats": {
-    "startTime": "2026-09-10T14:33:58.192Z",
-    "duration": 47.29899999999998,
+    "startTime": "2026-09-10T15:45:11.941Z",
+    "duration": 159.50400000000013,
     "expected": 0,
     "skipped": 12,
     "unexpected": 0,

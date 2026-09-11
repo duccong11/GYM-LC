@@ -1,8 +1,8 @@
 import assert from 'node:assert/strict';
 import {writeFileSync,readdirSync} from 'node:fs';
 process.env.GYM_TEST_MODE='1';
-const {pool}=await import('../backend/src/config/database.ts');
-import {digest} from '../backend/src/utils/security.ts';
+const {pool}=await import('../../backend/src/config/database.ts');
+import {digest} from '../../backend/src/utils/security.ts';
 const base='http://127.0.0.1:3100',results=[];
 const check=(name,condition)=>{assert(condition,name);results.push({name,status:'PASS'});};
 async function post(path,body,cookie='',csrf='',origin=base){const r=await fetch(base+path,{method:'POST',headers:{Origin:origin,'Content-Type':'application/json',Cookie:cookie,'X-CSRF-Token':csrf},body:JSON.stringify(body),redirect:'manual'});const text=await r.text();let d;try{d=JSON.parse(text);}catch{d={error:text};}return {r,d};}

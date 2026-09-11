@@ -1,11 +1,11 @@
 import test, { after } from 'node:test';
 import assert from 'node:assert/strict';
 process.env.GYM_TEST_MODE = '1';
-const { pool } = await import('../backend/src/config/database.ts');
-const { config } = await import('../backend/src/config/env.ts');
-const { transaction } = await import('../backend/src/models/database.model.ts');
-const { act } = await import('../backend/src/services/gym.service.ts');
-const { todayVN, addDays } = await import('../backend/src/utils/gym.ts');
+const { pool } = await import('../../backend/src/config/database.ts');
+const { config } = await import('../../backend/src/config/env.ts');
+const { transaction } = await import('../../backend/src/models/database.model.ts');
+const { act } = await import('../../backend/src/services/gym.service.ts');
+const { todayVN, addDays } = await import('../../backend/src/utils/gym.ts');
 assert.equal(
   config.database.database,
   'quan_ly_phong_gym_test',

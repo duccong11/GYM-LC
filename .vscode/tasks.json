@@ -1,1 +1,1 @@
-{"version":"2.0.0","tasks":[{"label":"GYM: Chạy website","type":"shell","command":"powershell.exe","args":["-NoProfile","-ExecutionPolicy","Bypass","-File","scripts/start.ps1"],"isBackground":true,"problemMatcher":[]}]}
+{"version":"2.0.0","tasks":[{"label":"GYM: Chạy website","type":"shell","command":"powershell.exe","args":["-NoProfile","-ExecutionPolicy","Bypass","-File","tools/scripts/start.ps1"],"isBackground":true,"problemMatcher":[]}]}
