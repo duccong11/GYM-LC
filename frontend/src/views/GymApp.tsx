@@ -1,3 +1,4 @@
+import Workflows from '../components/Workflows';
 import { mutateRequest } from '../services/gym.api';
 ('use client');
 import {
@@ -38,9 +39,19 @@ import {
   type Plan,
   type Payment,
 } from '../utils/gym';
-import { permissions, roleLabel, type User } from '../utils/security';
+import {
+  permissions,
+  roleLabel,
+  canMutate,
+  type User,
+} from '../utils/security';
 import Management, { Pagination, type Row } from '../components/Management';
 export type Tab =
+  | 'registrations'
+  | 'schedules'
+  | 'reports'
+  | 'system'
+  | 'search'
   | 'overview'
   | 'members'
   | 'plans'
@@ -51,13 +62,18 @@ export type Tab =
   | 'rooms'
   | 'equipment';
 const nav = [
+  { id: 'system', label: 'Hệ thống', icon: UserCog },
+  { id: 'registrations', label: 'Đăng ký gói', icon: BadgeCheck },
+  { id: 'schedules', label: 'Lịch tập', icon: ScanLine },
+  { id: 'reports', label: 'Báo cáo', icon: LayoutDashboard },
+  { id: 'search', label: 'Tra cứu', icon: Search },
   { id: 'overview', label: 'Tổng quan', icon: LayoutDashboard },
   { id: 'members', label: 'Hội viên', icon: Users },
   { id: 'plans', label: 'Gói tập', icon: Dumbbell },
   { id: 'payments', label: 'Thanh toán', icon: CreditCard },
   { id: 'checkins', label: 'Điểm danh', icon: ScanLine },
   { id: 'trainers', label: 'Huấn luyện viên', icon: BadgeCheck },
-  { id: 'users', label: 'Nhân viên', icon: UserCog },
+  { id: 'users', label: 'Tài khoản và phân quyền', icon: UserCog },
   { id: 'rooms', label: 'Phòng tập', icon: Building2 },
   { id: 'equipment', label: 'Thiết bị', icon: Wrench },
 ] as const;
@@ -112,8 +128,8 @@ export default function GymApp({
     [formError, setFormError] = useState('');
   const dialog = useRef<HTMLDialogElement>(null),
     lock = useRef(false);
-  const admin = user.role === 'ADMIN',
-    staff = user.role !== 'TRAINER';
+  const admin = user.role === 'MANAGER',
+    staff = user.role === 'MANAGER' || user.role === 'STAFF';
   const refresh = useCallback(async () => {
     const r = await fetch('/api/gym', { cache: 'no-store' });
     const d = (await r.json()) as Extended & { error?: string };
@@ -193,7 +209,8 @@ export default function GymApp({
         };
       }
     ).modelContext;
-    if (!context?.registerTool) return;
+    if (!context?.registerTool || !canMutate(user.role, 'checkin.create'))
+      return;
     const abort = new AbortController();
     try {
       Promise.resolve(
@@ -226,23 +243,28 @@ export default function GymApp({
       ).catch(() => {});
     } catch {}
     return () => abort.abort();
-  }, [mutate]);
+  }, [mutate, user.role]);
   const run = (p: Record<string, unknown>, message: string) => {
     void mutate(p, message).catch((e) => setToast(e.message));
   };
   const live = data.members.filter((m) => !m.archived),
     active = live.filter(
-      (m) => membership(m, data.payments, data.today).current,
+      (m) =>
+        membership(m, data.entitlements || data.payments, data.today).current,
     ),
     expired = live.filter(
-      (m) => membership(m, data.payments, data.today).status === 'Hết hạn',
+      (m) =>
+        membership(m, data.entitlements || data.payments, data.today).status ===
+        'Hết hạn',
     );
   const expiring = active.filter(
-      (m) => (membership(m, data.payments, data.today).remaining ?? 99) <= 7,
+      (m) =>
+        (membership(m, data.entitlements || data.payments, data.today)
+          .remaining ?? 99) <= 7,
     ),
     todayVisits = data.checkins.filter((c) => c.date === data.today);
   const search = (m: Member) =>
-    (m.name + ' ' + m.phone + ' ' + m.id)
+    (m.name + ' ' + m.phone + ' ' + m.id + ' ' + (m.code || ''))
       .toLocaleLowerCase()
       .includes(query.trim().toLocaleLowerCase());
   const members = data.members.filter(
@@ -253,7 +275,8 @@ export default function GymApp({
         status === 'Đã lưu trữ' ||
         (status === 'Sắp hết hạn'
           ? expiring.some((x) => x.id === m.id)
-          : membership(m, data.payments, data.today).status === status)),
+          : membership(m, data.entitlements || data.payments, data.today)
+              .status === status)),
   );
   const nameOf = (id: string) =>
     data.members.find((m) => m.id === id)?.name || id;
@@ -273,7 +296,9 @@ export default function GymApp({
       .reduce((s, p) => s + p.amount, 0);
   const filteredPlans = data.plans.filter(
     (p) =>
-      p.name.toLocaleLowerCase().includes(query.trim().toLocaleLowerCase()) &&
+      (p.name + ' ' + (p.code || ''))
+        .toLocaleLowerCase()
+        .includes(query.trim().toLocaleLowerCase()) &&
       (!status || String(p.active) === status),
   );
   const pages = (n: number) => Math.max(1, Math.ceil(n / 8)),
@@ -287,6 +312,13 @@ export default function GymApp({
     setForm(
       kind === 'member'
         ? {
+            code:
+              'HV' +
+              crypto
+                .randomUUID()
+                .replaceAll('-', '')
+                .slice(0, 12)
+                .toUpperCase(),
             name: '',
             phone: '',
             email: '',
@@ -299,6 +331,13 @@ export default function GymApp({
           }
         : kind === 'plan'
           ? {
+              code:
+                'GT' +
+                crypto
+                  .randomUUID()
+                  .replaceAll('-', '')
+                  .slice(0, 12)
+                  .toUpperCase(),
               name: '',
               days: '30',
               price: '350000',
@@ -365,12 +404,13 @@ export default function GymApp({
         'Hạn tập',
       ],
       ...members.map((m) => [
-        m.id,
+        m.code || m.id,
         m.name,
         m.phone,
         m.email,
-        membership(m, data.payments, data.today).status,
-        membership(m, data.payments, data.today).last?.end_date || '',
+        membership(m, data.entitlements || data.payments, data.today).status,
+        membership(m, data.entitlements || data.payments, data.today).last
+          ?.end_date || '',
       ]),
     ];
     const csv =
@@ -398,7 +438,7 @@ export default function GymApp({
     setTimeout(() => URL.revokeObjectURL(url), 1000);
   }
   const badge = (m: Member) => {
-    const s = membership(m, data.payments, data.today);
+    const s = membership(m, data.entitlements || data.payments, data.today);
     return (
       <span
         className={
@@ -428,7 +468,11 @@ export default function GymApp({
         </thead>
         <tbody>
           {list.map((m) => {
-            const s = membership(m, data.payments, data.today);
+            const s = membership(
+              m,
+              data.entitlements || data.payments,
+              data.today,
+            );
             return (
               <tr key={m.id}>
                 <td>
@@ -472,21 +516,23 @@ export default function GymApp({
                     </button>
                     {staff &&
                       (m.archived ? (
-                        <button
-                          disabled={busy}
-                          onClick={() =>
-                            run(
-                              {
-                                action: 'member.archive',
-                                id: m.id,
-                                archived: false,
-                              },
-                              'Đã khôi phục hội viên.',
-                            )
-                          }
-                        >
-                          Khôi phục
-                        </button>
+                        canMutate(user.role, 'member.archive') && (
+                          <button
+                            disabled={busy}
+                            onClick={() =>
+                              run(
+                                {
+                                  action: 'member.archive',
+                                  id: m.id,
+                                  archived: false,
+                                },
+                                'Đã khôi phục hội viên.',
+                              )
+                            }
+                          >
+                            Khôi phục
+                          </button>
+                        )
                       ) : (
                         <>
                           <button
@@ -504,20 +550,22 @@ export default function GymApp({
                               >
                                 <Pencil size={15} />
                               </button>
-                              <button
-                                className="icon-button"
-                                aria-label={'Xóa ' + m.name}
-                                onClick={() =>
-                                  confirm(
-                                    'Xóa / lưu trữ ' +
-                                      m.name +
-                                      '? Có thể khôi phục trong bộ lọc Đã lưu trữ. Lịch sử thanh toán được giữ lại.',
-                                    { action: 'member.archive', id: m.id },
-                                  )
-                                }
-                              >
-                                <Archive size={15} />
-                              </button>
+                              {canMutate(user.role, 'member.archive') && (
+                                <button
+                                  className="icon-button"
+                                  aria-label={'Xóa ' + m.name}
+                                  onClick={() =>
+                                    confirm(
+                                      'Xóa / lưu trữ ' +
+                                        m.name +
+                                        '? Có thể khôi phục trong bộ lọc Đã lưu trữ. Lịch sử thanh toán được giữ lại.',
+                                      { action: 'member.archive', id: m.id },
+                                    )
+                                  }
+                                >
+                                  <Archive size={15} />
+                                </button>
+                              )}
                             </>
                           )}
                         </>
@@ -558,7 +606,7 @@ export default function GymApp({
   return (
     <div className="shell">
       <aside>
-        <a className="brand" href={staff ? '/' : '/members'}>
+        <a className="brand" href="/">
           <span>
             <Dumbbell />
           </span>
@@ -608,7 +656,9 @@ export default function GymApp({
                 <span className="lime">.</span>
               </h1>
               <p className="muted">
-                Quản lý hoạt động và đồng hành cùng hội viên.
+                {user.role === 'ADMIN'
+                  ? 'Quản lý tài khoản, phân quyền và cấu hình hệ thống.'
+                  : 'Quản lý hoạt động và đồng hành cùng hội viên.'}
               </p>
             </div>
             <div className="heading-actions">
@@ -618,7 +668,7 @@ export default function GymApp({
                   Xuất CSV
                 </button>
               )}
-              {staff && ['overview', 'members', 'payments'].includes(tab) && (
+              {staff && ['overview', 'members'].includes(tab) && (
                 <button
                   className="primary"
                   disabled={loading || !!error}
@@ -862,7 +912,7 @@ export default function GymApp({
                             {p.active ? 'Đang áp dụng' : 'Tạm ngưng'}
                           </span>
                           <p className="eyebrow">
-                            MÃ GÓI / {p.id.slice(-8).toUpperCase()}
+                            MÃ GÓI / {p.code || p.id.slice(-8).toUpperCase()}
                           </p>
                           <h2>{p.name}</h2>
                           <strong className="plan-price">
@@ -921,7 +971,7 @@ export default function GymApp({
                     />
                   </>
                 )}
-                {tab === 'payments' && (
+                {false && tab === 'payments' && (
                   <article className="panel">
                     <div className="toolbar payment-filters">
                       <label>
@@ -1082,8 +1132,11 @@ export default function GymApp({
                               c.member_id === m.id && c.checkout_at === null,
                           ),
                           valid =
-                            membership(m, data.payments, data.today).current &&
-                            !m.archived;
+                            membership(
+                              m,
+                              data.entitlements || data.payments,
+                              data.today,
+                            ).current && !m.archived;
                         return (
                           <div className="checkin-row" key={m.id}>
                             <div>
@@ -1091,8 +1144,11 @@ export default function GymApp({
                               <small className="muted">
                                 {m.phone} ·{' '}
                                 {
-                                  membership(m, data.payments, data.today)
-                                    .status
+                                  membership(
+                                    m,
+                                    data.entitlements || data.payments,
+                                    data.today,
+                                  ).status
                                 }
                               </small>
                             </div>
@@ -1186,6 +1242,22 @@ export default function GymApp({
                     </article>
                   </>
                 )}
+                {[
+                  'registrations',
+                  'schedules',
+                  'payments',
+                  'reports',
+                  'system',
+                  'search',
+                ].includes(tab) && (
+                  <Workflows
+                    key={tab}
+                    kind={tab}
+                    data={data}
+                    user={user}
+                    mutate={mutate}
+                  />
+                )}
                 {['trainers', 'users', 'rooms', 'equipment'].includes(tab) && (
                   <Management
                     key={tab}
@@ -1228,6 +1300,18 @@ export default function GymApp({
               <X />
             </button>
           </div>
+          {['member', 'plan'].includes(modal?.kind || '') && (
+            <label>
+              Mã nghiệp vụ *
+              <input
+                required
+                minLength={modal?.kind === 'plan' ? 3 : 5}
+                maxLength={20}
+                pattern="[A-Za-z0-9]+"
+                {...field('code')}
+              />
+            </label>
+          )}
           {modal?.kind === 'member' && (
             <div className="form-grid">
               <label className="full">
@@ -1235,7 +1319,7 @@ export default function GymApp({
                 <input
                   required
                   minLength={2}
-                  maxLength={80}
+                  maxLength={100}
                   {...field('name')}
                 />
               </label>
@@ -1243,9 +1327,9 @@ export default function GymApp({
                 Số điện thoại *
                 <input
                   required
-                  pattern="0[0-9]{9}"
-                  title="10 chữ số bắt đầu bằng 0"
-                  maxLength={10}
+                  pattern="0[0-9]{9,10}"
+                  title="10–11 chữ số bắt đầu bằng 0"
+                  maxLength={11}
                   {...field('phone')}
                 />
               </label>
@@ -1268,7 +1352,7 @@ export default function GymApp({
               </label>
               <label>
                 Email
-                <input type="email" maxLength={120} {...field('email')} />
+                <input type="email" maxLength={100} {...field('email')} />
               </label>
               <label className="full">
                 Địa chỉ
@@ -1285,8 +1369,8 @@ export default function GymApp({
                 Tên gói *
                 <input
                   required
-                  minLength={2}
-                  maxLength={60}
+                  minLength={3}
+                  maxLength={100}
                   {...field('name')}
                 />
               </label>
@@ -1306,7 +1390,7 @@ export default function GymApp({
                 <input
                   type="number"
                   required
-                  min={1000}
+                  min={0}
                   max={100000000}
                   step={1}
                   {...field('price')}
@@ -1390,9 +1474,13 @@ export default function GymApp({
             <dl className="details">
               {(() => {
                 const m = modal.value as Member,
-                  s = membership(m, data.payments, data.today);
+                  s = membership(
+                    m,
+                    data.entitlements || data.payments,
+                    data.today,
+                  );
                 return [
-                  ['Mã hội viên', m.id],
+                  ['Mã hội viên', m.code || m.id],
                   ['Họ tên', m.name],
                   ['Ngày sinh', dateLabel(m.birth_date || '')],
                   ['Giới tính', m.gender],

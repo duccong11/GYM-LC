@@ -13,7 +13,12 @@ import {
   hashPassword,
   type User,
 } from '../utils/security.ts';
-import { fail, stringField } from '../utils/validation.ts';
+import {
+  fail,
+  stringField,
+  contact,
+  validatePassword,
+} from '../utils/validation.ts';
 export async function getAuth(req: Request, res: Response) {
   const user = await transaction((db) => findSession(db, req.get('cookie')));
   if (!user) return res.status(401).json({ error: 'Chưa đăng nhập.' });
@@ -35,13 +40,72 @@ export async function postAuth(req: Request, res: Response) {
     }, true);
     return res.set('Set-Cookie', sessionCookie('', 0)).json({ ok: true });
   }
+  if (b.action === 'register') {
+    const c = contact(b),
+      username = stringField(
+        b,
+        'username',
+        'Tên đăng nhập',
+        5,
+        30,
+      ).toLowerCase();
+    if (!/^[a-z0-9_]+$/.test(username))
+      fail('Tên đăng nhập chỉ gồm chữ, số và gạch dưới.');
+    if (!c.email) fail('Email không được để trống.');
+    const password = validatePassword(b.password);
+    if (password !== b.confirm_password) fail('Xác nhận mật khẩu không khớp.');
+    if (b.role !== undefined && b.role !== 'MEMBER')
+      fail('Đăng ký công khai chỉ dành cho hội viên.', 403);
+    const hash = await hashPassword(password);
+    await transaction(async (db) => {
+      if (
+        await db
+          .prepare('SELECT id FROM accounts WHERE username=? OR email=?')
+          .bind(username, c.email)
+          .first()
+      )
+        fail('Tên đăng nhập hoặc email đã tồn tại.', 409);
+      if (
+        await db
+          .prepare('SELECT id FROM members WHERE phone=? OR email=?')
+          .bind(c.phone, c.email)
+          .first()
+      )
+        fail(
+          'Hồ sơ hội viên đã tồn tại. Liên hệ nhân viên để liên kết tài khoản.',
+          409,
+        );
+      const aid = crypto.randomUUID(),
+        mid = crypto.randomUUID(),
+        now = new Date().toISOString();
+      await db
+        .prepare(
+          "INSERT INTO members(id,name,phone,email,gender,created_at) VALUES(?,?,?,?,'Khác',?)",
+        )
+        .bind(mid, c.name, c.phone, c.email, now)
+        .run();
+      await db
+        .prepare('UPDATE members SET code=? WHERE id=?')
+        .bind('HV' + mid.replaceAll('-', '').slice(0, 16).toUpperCase(), mid)
+        .run();
+      await db
+        .prepare(
+          "INSERT INTO accounts(id,name,username,password_hash,phone,email,position,role,active,created_at,member_id) VALUES(?,?,?,?,?,?,'Hội viên','MEMBER',1,?,?)",
+        )
+        .bind(aid, c.name, username, hash, c.phone, c.email, now, mid)
+        .run();
+    }, true);
+    return res
+      .status(201)
+      .json({ ok: true, message: 'Đăng ký thành công. Vui lòng đăng nhập.' });
+  }
   if (b.action !== 'login') fail('Thao tác không hợp lệ.');
   const username = stringField(
     b,
     'username',
     'Tên đăng nhập',
     1,
-    32,
+    100,
   ).toLowerCase();
   if (
     typeof b.password !== 'string' ||
@@ -68,8 +132,8 @@ export async function postAuth(req: Request, res: Response) {
     fail('Quá nhiều lần thử. Vui lòng thử lại sau 15 phút.', 429);
   const result = await transaction(async (db) => {
     const a = await db
-      .prepare('SELECT * FROM accounts WHERE username=?')
-      .bind(username)
+      .prepare('SELECT * FROM accounts WHERE username=? OR email=?')
+      .bind(username, username)
       .first<User & { password_hash: string }>();
     const hash =
       a?.password_hash ||

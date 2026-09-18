@@ -49,11 +49,11 @@ export function dateField(value: unknown, label = 'Ngày', required = true) {
   return value as string;
 }
 export function contact(b: Record<string, unknown>) {
-  const name = stringField(b, 'name', 'Họ tên', 2, 80),
-    phone = stringField(b, 'phone', 'Số điện thoại', 10, 10),
-    email = stringField(b, 'email', 'Email', 0, 120);
-  if (!/^0\d{9}$/.test(phone))
-    fail('Số điện thoại phải có 10 chữ số bắt đầu bằng 0.');
+  const name = stringField(b, 'name', 'Họ tên', 2, 100),
+    phone = stringField(b, 'phone', 'Số điện thoại', 10, 11),
+    email = stringField(b, 'email', 'Email', 0, 100);
+  if (!/^0\d{9,10}$/.test(phone))
+    fail('Số điện thoại phải có 10–11 chữ số bắt đầu bằng 0.');
   if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))
     fail('Email không hợp lệ.');
   return { name, phone, email };
@@ -62,11 +62,11 @@ export function validatePassword(value: unknown) {
   if (
     typeof value !== 'string' ||
     value.length < 8 ||
-    value.length > 128 ||
+    value.length > 64 ||
     !/[A-Za-z]/.test(value) ||
     !/[0-9]/.test(value)
   )
-    fail('Mật khẩu cần 8–128 ký tự, gồm chữ và số.');
+    fail('Mật khẩu cần 8–64 ký tự, gồm chữ và số.');
   return value as string;
 }
 export function registrationDates(

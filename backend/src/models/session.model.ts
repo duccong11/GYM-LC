@@ -11,7 +11,7 @@ export async function findSession(db: Database, cookie: string = '') {
   if (!token || !/^[a-f0-9]{64}$/.test(token)) return null;
   return db
     .prepare(
-      'SELECT a.id,a.name,a.username,a.role,a.phone,a.email,a.position,a.active,s.csrf,s.id AS session_id FROM sessions s JOIN accounts a ON a.id=s.account_id WHERE s.id=? AND s.expires_at>? AND a.active=1',
+      'SELECT a.id,a.name,a.username,a.role,a.phone,a.email,a.position,a.active,a.member_id,a.trainer_id,s.csrf,s.id AS session_id FROM sessions s JOIN accounts a ON a.id=s.account_id WHERE s.id=? AND s.expires_at>? AND a.active=1',
     )
     .bind(await digest(token), new Date().toISOString())
     .first<SessionUser>();

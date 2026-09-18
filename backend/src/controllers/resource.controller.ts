@@ -6,6 +6,8 @@ import { permissions } from '../utils/security.ts';
 import { fail } from '../utils/validation.ts';
 import { mutateGym } from './gym.controller.ts';
 export const resourceNames = {
+  registrations: 'registration',
+  schedules: 'schedule',
   members: 'member',
   plans: 'plan',
   payments: 'payment',

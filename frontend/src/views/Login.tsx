@@ -2,6 +2,8 @@
 import { useState, useEffect, type FormEvent } from 'react';
 import { Dumbbell, LockKeyhole } from 'lucide-react';
 export default function Login() {
+  const [register, setRegister] = useState(false),
+    [message, setMessage] = useState('');
   const [ready, setReady] = useState(false);
   useEffect(() => setReady(true), []);
   const [error, setError] = useState(''),
@@ -17,14 +19,23 @@ export default function Login() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          action: 'login',
+          action: register ? 'register' : 'login',
+          name: f.get('name'),
+          email: f.get('email'),
+          phone: f.get('phone'),
+          confirm_password: f.get('confirm_password'),
           username: f.get('username'),
           password: f.get('password'),
         }),
       });
       const d = (await r.json()) as { error?: string; user?: { role: string } };
       if (!r.ok) throw new Error(d.error);
-      location.assign(d.user?.role === 'TRAINER' ? '/members' : '/');
+      if (register) {
+        setRegister(false);
+        setMessage('Đăng ký thành công. Vui lòng đăng nhập.');
+        return;
+      }
+      location.assign('/');
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Không kết nối được máy chủ.');
     } finally {
@@ -53,15 +64,36 @@ export default function Login() {
       </section>
       <form className="login-form panel" method="post" onSubmit={submit}>
         <LockKeyhole size={30} className="lime" />
-        <h1>Đăng nhập</h1>
-        <p className="muted">Sử dụng tài khoản do quản trị viên cấp.</p>
+        <h1>{register ? 'Đăng ký hội viên' : 'Đăng nhập'}</h1>
+        <p className="muted">
+          {register
+            ? 'Tạo tài khoản hội viên để tra cứu gói tập và lịch tập của bạn.'
+            : 'Đăng nhập bằng tên tài khoản hoặc email.'}
+        </p>
+        {message && <p role="status">{message}</p>}
+        {register && (
+          <>
+            <label>
+              Họ tên
+              <input name="name" required minLength={2} maxLength={80} />
+            </label>
+            <label>
+              Email
+              <input name="email" type="email" required maxLength={120} />
+            </label>
+            <label>
+              Số điện thoại
+              <input name="phone" required pattern="0[0-9]{9,10}" />
+            </label>
+          </>
+        )}
         <label>
           Tên đăng nhập
           <input
             name="username"
             autoComplete="username"
             required
-            maxLength={32}
+            maxLength={register ? 30 : 100}
             autoFocus
           />
         </label>
@@ -72,16 +104,34 @@ export default function Login() {
             type="password"
             autoComplete="current-password"
             required
-            maxLength={128}
+            maxLength={64}
           />
         </label>
+        {register && (
+          <label>
+            Xác nhận mật khẩu
+            <input name="confirm_password" type="password" required />
+          </label>
+        )}
         {error && (
           <div role="alert" className="form-error">
             {error}
           </div>
         )}
         <button className="primary" disabled={busy || !ready}>
-          {busy ? 'Đang đăng nhập…' : 'Đăng nhập'}
+          {busy ? 'Đang xử lý…' : register ? 'Đăng ký' : 'Đăng nhập'}
+        </button>
+        <button
+          type="button"
+          onClick={() => {
+            setRegister(!register);
+            setError('');
+            setMessage('');
+          }}
+        >
+          {register
+            ? 'Đã có tài khoản? Đăng nhập'
+            : 'Đăng ký tài khoản hội viên'}
         </button>
         <small className="muted">
           Liên hệ Admin nếu tài khoản bị khóa hoặc quên mật khẩu.

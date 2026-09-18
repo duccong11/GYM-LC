@@ -6,7 +6,8 @@ const env = {
 };
 for (const script of [
   'init-db',
-  ...(process.argv.includes('--demo') ? ['seed'] : []),
+  'migrate',
+  ...(process.argv.includes('--demo') ? ['seed', 'migrate'] : []),
 ]) {
   const r = spawnSync(process.execPath, ['backend/scripts/' + script + '.ts'], {
     stdio: 'inherit',

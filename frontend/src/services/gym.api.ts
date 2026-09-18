@@ -1,4 +1,6 @@
 const resources: Record<string, string> = {
+  registration: 'registrations',
+  schedule: 'schedules',
   member: 'members',
   plan: 'plans',
   payment: 'payments',
@@ -15,7 +17,7 @@ export function mutateRequest(payload: Record<string, unknown>, csrf: string) {
     method = 'POST';
   if (collection) {
     path = '/api/' + collection;
-    if (op === 'save' && payload.id) {
+    if (['save', 'update'].includes(op) && payload.id) {
       path += '/' + encodeURIComponent(String(payload.id));
       method = 'PUT';
     } else if (op === 'delete') {

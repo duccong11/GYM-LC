@@ -1,4 +1,4 @@
-export type Role = 'ADMIN' | 'STAFF' | 'TRAINER';
+export type Role = 'ADMIN' | 'MANAGER' | 'STAFF' | 'TRAINER' | 'MEMBER';
 export type User = {
   id: string;
   name: string;
@@ -8,49 +8,86 @@ export type User = {
   email: string;
   position: string;
   active: number;
+  member_id?: string | null;
+  trainer_id?: string | null;
 };
 export const roleLabel: Record<Role, string> = {
-  ADMIN: 'Quản trị viên',
+  ADMIN: 'Quản trị hệ thống',
+  MANAGER: 'Quản lý phòng GYM',
   STAFF: 'Nhân viên',
   TRAINER: 'Huấn luyện viên',
+  MEMBER: 'Hội viên',
 };
 export const permissions: Record<Role, string[]> = {
-  ADMIN: [
+  ADMIN: ['users', 'system'],
+  MANAGER: [
+    'search',
     'overview',
     'members',
     'plans',
+    'registrations',
     'payments',
+    'schedules',
+    'reports',
     'checkins',
     'trainers',
-    'users',
     'rooms',
     'equipment',
   ],
   STAFF: [
-    'overview',
+    'search',
     'members',
     'plans',
+    'registrations',
     'payments',
+    'schedules',
     'checkins',
     'trainers',
     'rooms',
     'equipment',
   ],
-  TRAINER: ['members', 'plans', 'checkins', 'trainers', 'rooms', 'equipment'],
+  TRAINER: ['search', 'schedules', 'members', 'plans', 'rooms'],
+  MEMBER: ['search', 'members', 'plans', 'registrations', 'schedules'],
+};
+const actions: Record<Role, string[]> = {
+  ADMIN: ['user.save', 'user.toggle', 'user.delete', 'system.save'],
+  MANAGER: [
+    'member.save',
+    'member.archive',
+    'member.delete',
+    'plan.save',
+    'plan.toggle',
+    'plan.delete',
+    'registration.save',
+    'registration.delete',
+    'payment.create',
+    'payment.update',
+    'payment.delete',
+    'schedule.save',
+    'schedule.delete',
+    'trainer.save',
+    'trainer.delete',
+    'room.save',
+    'room.delete',
+    'equipment.save',
+    'equipment.delete',
+    'checkin.create',
+    'checkin.checkout',
+  ],
+  STAFF: [
+    'member.save',
+    'registration.save',
+    'schedule.save',
+    'payment.create',
+    'equipment.save',
+    'checkin.create',
+    'checkin.checkout',
+  ],
+  TRAINER: [],
+  MEMBER: [],
 };
 export function canMutate(role: Role, action: string) {
-  if (!['ADMIN', 'STAFF', 'TRAINER'].includes(role)) return false;
-  if (role === 'ADMIN') return true;
-  if (action === 'checkin.create' || action === 'checkin.checkout') return true;
-  return (
-    role === 'STAFF' &&
-    [
-      'member.save',
-      'member.archive',
-      'payment.create',
-      'equipment.save',
-    ].includes(action)
-  );
+  return actions[role]?.includes(action) ?? false;
 }
 const hex = (a: ArrayBuffer) =>
   Array.from(new Uint8Array(a))

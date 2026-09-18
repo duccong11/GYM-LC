@@ -1,8 +1,10 @@
+import { migrateWorkflows } from './models/migration.model.ts';
 import { app } from './app.ts';
 import { pool } from './config/database.ts';
 import { config } from './config/env.ts';
 try {
   await pool.query('SELECT id FROM mutation_lock WHERE id=1');
+  await migrateWorkflows();
   const server = app.listen(config.port, config.host, () =>
     console.log('GYM backend: http://' + config.host + ':' + config.port),
   );

@@ -9,7 +9,7 @@ import {
   LockKeyhole,
   Unlock,
 } from 'lucide-react';
-import { type Role } from '../utils/security';
+import { canMutate, type Role } from '../utils/security';
 import { dateLabel } from '../utils/gym';
 export type Row = Record<string, string | number | null>;
 type Field = {
@@ -29,6 +29,7 @@ const config: Record<
     title: 'Huấn luyện viên',
     singular: 'trainer',
     fields: [
+      { key: 'code', label: 'Mã HLV', required: true },
       { key: 'name', label: 'Họ tên', required: true },
       { key: 'phone', label: 'Số điện thoại', required: true },
       { key: 'email', label: 'Email', type: 'email' },
@@ -46,7 +47,7 @@ const config: Record<
     ],
   },
   users: {
-    title: 'Nhân viên và tài khoản',
+    title: 'Tài khoản và phân quyền',
     singular: 'user',
     fields: [
       { key: 'name', label: 'Họ tên', required: true },
@@ -55,7 +56,13 @@ const config: Record<
       { key: 'phone', label: 'Số điện thoại', required: true },
       { key: 'email', label: 'Email', type: 'email' },
       { key: 'position', label: 'Chức vụ' },
-      { key: 'role', label: 'Quyền', options: ['ADMIN', 'STAFF', 'TRAINER'] },
+      { key: 'member_id', label: 'Mã hoặc ID hồ sơ hội viên' },
+      { key: 'trainer_id', label: 'Mã hoặc ID hồ sơ HLV' },
+      {
+        key: 'role',
+        label: 'Quyền',
+        options: ['ADMIN', 'MANAGER', 'STAFF', 'TRAINER', 'MEMBER'],
+      },
       { key: 'active', label: 'Trạng thái', options: ['1', '0'] },
     ],
   },
@@ -108,7 +115,9 @@ const optionLabel = (value: string) =>
   ({
     '1': 'Đang hoạt động',
     '0': 'Ngừng hoạt động',
-    ADMIN: 'Quản trị viên',
+    ADMIN: 'Quản trị hệ thống',
+    MANAGER: 'Quản lý phòng GYM',
+    MEMBER: 'Hội viên',
     STAFF: 'Nhân viên',
     TRAINER: 'Huấn luyện viên',
   })[value] || value;
@@ -138,7 +147,7 @@ export default function Management({
     [busy, setBusy] = useState(false),
     [error, setError] = useState('');
   const ref = useRef<HTMLDialogElement>(null),
-    canEdit = role === 'ADMIN' || (role === 'STAFF' && kind === 'equipment');
+    canEdit = canMutate(role, c.singular + '.save');
   useEffect(() => {
     setPage(1);
   }, [query, filter, kind]);
@@ -171,6 +180,14 @@ export default function Management({
             ? ''
             : String(
                 row?.[f.key] ??
+                  (f.key === 'code'
+                    ? 'HLV' +
+                      crypto
+                        .randomUUID()
+                        .replaceAll('-', '')
+                        .slice(0, 12)
+                        .toUpperCase()
+                    : undefined) ??
                   f.options?.[0] ??
                   (f.type === 'number' ? (f.min ?? 1) : ''),
               ),
@@ -198,7 +215,10 @@ export default function Management({
     }
   }
   const columns = c.fields.filter(
-    (f) => f.key !== 'password' && f.key !== 'description',
+    (f) =>
+      !['password', 'description', 'member_id', 'trainer_id', 'code'].includes(
+        f.key,
+      ),
   );
   return (
     <>
@@ -255,7 +275,7 @@ export default function Management({
                       className="text-button"
                       onClick={() => open('detail', r)}
                     >
-                      {String(r.id).slice(-8).toUpperCase()}
+                      {r.code || String(r.id).slice(-8).toUpperCase()}
                     </button>
                   </td>
                   {columns.map((f) => (
@@ -309,13 +329,15 @@ export default function Management({
                             {r.active ? 'Khóa' : 'Mở khóa'}
                           </button>
                         ) : (
-                          <button
-                            className="icon-button"
-                            aria-label={'Xóa ' + r.name}
-                            onClick={() => open('delete', r)}
-                          >
-                            <Trash2 size={16} />
-                          </button>
+                          canMutate(role, c.singular + '.delete') && (
+                            <button
+                              className="icon-button"
+                              aria-label={'Xóa ' + r.name}
+                              onClick={() => open('delete', r)}
+                            >
+                              <Trash2 size={16} />
+                            </button>
+                          )
                         )}
                       </div>
                     )}
@@ -386,7 +408,7 @@ export default function Management({
                   {f.required ? ' *' : ''}
                   {f.options || f.key === 'room_id' ? (
                     <select
-                      value={form[f.key]}
+                      value={form[f.key]||''}
                       onChange={(e) =>
                         setForm({ ...form, [f.key]: e.target.value })
                       }
@@ -424,11 +446,11 @@ export default function Management({
                           : f.max
                       }
                       minLength={f.key === 'password' ? 8 : undefined}
-                      maxLength={f.key === 'password' ? 128 : 200}
+                      maxLength={f.key === 'password' ? 64 : 200}
                       autoComplete={
                         f.key === 'password' ? 'new-password' : 'off'
                       }
-                      value={form[f.key]}
+                      value={form[f.key]||''}
                       onChange={(e) =>
                         setForm({ ...form, [f.key]: e.target.value })
                       }

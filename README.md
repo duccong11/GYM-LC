@@ -2,6 +2,12 @@
 
 Frontend React và backend Express TypeScript theo MVC, cơ sở dữ liệu **MySQL 8.0.16+**. Source đang dùng nằm trong hai thư mục **backend** và **frontend**.
 
+## Phân quyền và nghiệp vụ mới
+
+Xem [Actor và use case](docs/ACTOR_USE_CASE.md). Admin chỉ quản lý tài khoản/phân quyền/hệ thống. Quản lý phụ trách nghiệp vụ và báo cáo; Nhân viên tiếp nhận/thu tiền; HLV và Hội viên xem dữ liệu trong phạm vi của mình.
+
+Nâng cấp dữ liệu hiện có: `node backend/scripts/migrate.ts`, sau đó `node tools/scripts/dev.mjs`. Giữ nguyên `backend/.env`.
+
 ## Chạy bằng VS Code
 
 Mở thư mục dự án, mở Terminal ở thư mục gốc:
@@ -43,6 +49,7 @@ Sau khi chạy db:demo hoặc nhập dữ liệu cũ:
 | Vai trò | Tài khoản | Mật khẩu minh họa |
 |---|---|---|
 | ADMIN | admin | GymAdmin2026! |
+| MANAGER | manager | GymManager2026! |
 | STAFF | staff1 đến staff4 | GymStaff2026! |
 | TRAINER | coach1 đến coach4 | GymCoach2026! |
 
@@ -55,7 +62,7 @@ coach5 bị khóa trong dữ liệu minh họa. Mật khẩu lưu dạng PBKDF2 
 - 01_schema.sql: 13 bảng, khóa chính/ngoại, CHECK và index.
 - 02_demo_data.sql: toàn bộ dữ liệu minh họa, chỉ nhập nếu cần.
 
-Có thể chạy trực tiếp bằng MySQL Workbench hoặc dùng các script. Muốn dùng tài khoản khác root, điền DB_USER và DB_PASSWORD tương ứng. Tài khoản khởi tạo cần quyền tạo schema; tài khoản vận hành chỉ cần quyền CRUD trên database.
+Có thể chạy trực tiếp bằng MySQL Workbench hoặc dùng các script. Muốn dùng tài khoản khác root, điền DB_USER và DB_PASSWORD tương ứng. Tài khoản khởi tạo cần quyền tạo schema; backend hiện chạy migration khi khởi động, vì vậy tài khoản kết nối cần quyền CREATE/ALTER/INDEX và CRUD trên database.
 
 ## Giữ dữ liệu từ phiên bản cũ
 

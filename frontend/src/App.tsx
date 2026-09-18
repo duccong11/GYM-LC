@@ -37,8 +37,19 @@ export default function App() {
     location.pathname === '/admin/users'
       ? 'users'
       : location.pathname.slice(1) ||
-        (state.user.role === 'TRAINER' ? 'members' : 'overview');
+        (state.user.role === 'ADMIN'
+          ? 'users'
+          : state.user.role === 'MANAGER'
+            ? 'overview'
+            : state.user.role === 'TRAINER'
+              ? 'schedules'
+              : 'members');
   const all = [
+    'registrations',
+    'schedules',
+    'reports',
+    'system',
+    'search',
     'overview',
     'members',
     'plans',
@@ -60,7 +71,7 @@ export default function App() {
     return (
       <section className="panel">
         <h1>403 · Không có quyền truy cập</h1>
-        <a href="/members">Về danh sách hội viên</a>
+        <a href="/">Về trang chính</a>
       </section>
     );
   return (

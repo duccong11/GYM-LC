@@ -1,5 +1,6 @@
 export type Member = {
   id: string;
+  code?: string;
   name: string;
   phone: string;
   email: string;
@@ -11,6 +12,7 @@ export type Member = {
 };
 export type Plan = {
   id: string;
+  code?: string;
   name: string;
   days: number;
   price: number;
@@ -40,6 +42,7 @@ export type GymData = {
   members: Member[];
   plans: Plan[];
   payments: Payment[];
+  entitlements?: Payment[];
   checkins: Checkin[];
   today: string;
 };
@@ -96,13 +99,13 @@ export function validateMember(b: Record<string, unknown>) {
     phone = String(b.phone ?? '').trim(),
     email = String(b.email ?? '').trim(),
     gender = String(b.gender ?? 'Khác');
-  if (name.length < 2 || name.length > 80)
-    throw new Error('Họ tên phải có từ 2 đến 80 ký tự.');
-  if (!/^0\d{9}$/.test(phone))
-    throw new Error('Số điện thoại phải gồm 10 chữ số và bắt đầu bằng 0.');
+  if (name.length < 2 || name.length > 100)
+    throw new Error('Họ tên phải có từ 2 đến 100 ký tự.');
+  if (!/^0\d{9,10}$/.test(phone))
+    throw new Error('Số điện thoại phải gồm 10–11 chữ số và bắt đầu bằng 0.');
   if (
     email &&
-    (email.length > 120 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))
+    (email.length > 100 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))
   )
     throw new Error('Email không hợp lệ.');
   if (!['Nam', 'Nữ', 'Khác'].includes(gender))
@@ -114,12 +117,12 @@ export function validatePlan(b: Record<string, unknown>) {
     days = Number(b.days),
     price = Number(b.price),
     description = String(b.description ?? '').trim();
-  if (name.length < 2 || name.length > 60)
-    throw new Error('Tên gói phải có từ 2 đến 60 ký tự.');
+  if (name.length < 3 || name.length > 100)
+    throw new Error('Tên gói phải có từ 3 đến 100 ký tự.');
   if (!Number.isInteger(days) || days < 1 || days > 730)
     throw new Error('Thời hạn phải từ 1 đến 730 ngày.');
-  if (!Number.isInteger(price) || price < 1000 || price > 100000000)
-    throw new Error('Giá gói phải là số nguyên từ 1.000 đến 100.000.000 đồng.');
+  if (!Number.isInteger(price) || price < 0 || price > 100000000)
+    throw new Error('Giá gói phải là số nguyên từ 0 đến 100.000.000 đồng.');
   if (description.length > 200) throw new Error('Mô tả tối đa 200 ký tự.');
   return { name, days, price, description };
 }

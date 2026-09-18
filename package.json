@@ -21,7 +21,9 @@
     "typecheck": "node node_modules/typescript/bin/tsc --noEmit -p backend/tsconfig.json && node node_modules/typescript/bin/tsc --noEmit -p frontend/tsconfig.json",
     "lint": "oxlint -c tools/scripts/config/.oxlintrc.json backend/src frontend/src",
     "format": "oxfmt --config tools/scripts/config/.oxfmtrc.json backend frontend scripts tests",
-    "test:all": "node tools/scripts/run-tests.mjs"
+    "test:all": "node tools/scripts/run-tests.mjs",
+    "test:workflows": "node --test tools/tests/workflows.test.mjs",
+    "db:migrate": "node backend/scripts/migrate.ts"
   },
   "dependencies": {
     "dotenv": "^17.4.2",

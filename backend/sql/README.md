@@ -1,3 +1,9 @@
+# Cập nhật actor và nghiệp vụ
+
+Chạy `node backend/scripts/migrate.ts` sau khi nhập schema/dữ liệu cũ. `03_actor_workflows.sql` tạo registrations, schedules, system_settings; migration bổ sung code, liên kết tài khoản–hồ sơ, payment.registration_id và cancellation_reason cùng các khóa ngoại. Tổng hiện tại 16 bảng. Vai trò: ADMIN, MANAGER, STAFF, TRAINER, MEMBER. Xem [đặc tả triển khai](../../docs/ACTOR_USE_CASE.md).
+
+Phần từ điển dưới đây mô tả schema nền trước migration; cấu trúc bổ sung nằm ở `03_actor_workflows.sql` và `src/models/migration.model.ts`.
+
 # Cơ sở dữ liệu MySQL quản lý phòng GYM
 
 Database mặc định quan_ly_phong_gym dùng MySQL 8.0.16 trở lên, InnoDB và utf8mb4. Tài liệu mô tả bảng, quan hệ, kiểu dữ liệu và cách nhập SQL. Dữ liệu được lưu tại MySQL, frontend chỉ gọi HTTP API.

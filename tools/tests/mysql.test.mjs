@@ -3,7 +3,8 @@ import assert from 'node:assert/strict';
 process.env.GYM_TEST_MODE = '1';
 const { pool } = await import('../../backend/src/config/database.ts');
 const { config } = await import('../../backend/src/config/env.ts');
-const { transaction } = await import('../../backend/src/models/database.model.ts');
+const { transaction } =
+  await import('../../backend/src/models/database.model.ts');
 const { act } = await import('../../backend/src/services/gym.service.ts');
 const { todayVN, addDays } = await import('../../backend/src/utils/gym.ts');
 assert.equal(
@@ -18,7 +19,15 @@ const actor = {
   role: 'ADMIN',
   active: 1,
 };
-const run = (b) => transaction((db) => act(db, b, actor), true);
+const run = (b) =>
+  transaction(
+    (db) =>
+      act(db, b, {
+        ...actor,
+        role: b.action.startsWith('user.') ? 'ADMIN' : 'MANAGER',
+      }),
+    true,
+  );
 const phone = () =>
   '0' +
   String(Date.now()).slice(-7) +
@@ -148,7 +157,7 @@ test('MySQL check-in từ chối hết hạn', async () => {
     p = await plan();
   await pay(m, p);
   await pool.execute(
-    'UPDATE payments SET start_date=?,end_date=? WHERE member_id=?',
+    'UPDATE registrations SET start_date=?,end_date=? WHERE member_id=?',
     [addDays(todayVN(), -40), addDays(todayVN(), -1), m.id],
   );
   await assert.rejects(() =>

@@ -6,7 +6,8 @@
       "test",
       "--config",
       "tools/tests/playwright.config.ts",
-      "--list"
+      "--grep",
+      "E2E-02"
     ],
     "configFile": "C:\\GYM LC\\tools\\tests\\playwright.config.ts",
     "rootDir": "C:/GYM LC/tools/tests/e2e",
@@ -19,14 +20,18 @@
     "grep": {},
     "grepInvert": null,
     "maxFailures": 0,
-    "metadata": {},
+    "metadata": {
+      "actualWorkers": 1
+    },
     "preserveOutput": "always",
     "projects": [
       {
         "outputDir": "C:/GYM LC/tools/tests/outputs/e2e-artifacts",
         "repeatEach": 1,
         "retries": 0,
-        "metadata": {},
+        "metadata": {
+          "actualWorkers": 1
+        },
         "id": "",
         "name": "",
         "testDir": "C:/GYM LC/tools/tests/e2e",
@@ -83,7 +88,7 @@
       "line": 0,
       "specs": [
         {
-          "title": "E2E-01: đăng nhập và thêm hội viên từ biểu mẫu",
+          "title": "E2E-02: đăng ký và thu tiền qua giao diện",
           "ok": true,
           "tags": [],
           "tests": [
@@ -93,233 +98,27 @@
               "expectedStatus": "passed",
               "projectId": "",
               "projectName": "",
-              "results": [],
-              "status": "skipped"
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 7558,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-09-18T00:43:29.205Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
             }
           ],
-          "id": "1397082da9db6e488a1c-b4fd32338644fd640483",
+          "id": "1397082da9db6e488a1c-8d7935f68549ec04fec2",
           "file": "gym.spec.ts",
-          "line": 6,
-          "column": 1
-        },
-        {
-          "title": "E2E-02: đăng ký gói qua giao diện và xem hóa đơn",
-          "ok": true,
-          "tags": [],
-          "tests": [
-            {
-              "timeout": 45000,
-              "annotations": [],
-              "expectedStatus": "passed",
-              "projectId": "",
-              "projectName": "",
-              "results": [],
-              "status": "skipped"
-            }
-          ],
-          "id": "1397082da9db6e488a1c-6b8c369ce4f60887e0ce",
-          "file": "gym.spec.ts",
-          "line": 7,
-          "column": 1
-        },
-        {
-          "title": "E2E-03: check-in, check-out, vào lại",
-          "ok": true,
-          "tags": [],
-          "tests": [
-            {
-              "timeout": 45000,
-              "annotations": [],
-              "expectedStatus": "passed",
-              "projectId": "",
-              "projectName": "",
-              "results": [],
-              "status": "skipped"
-            }
-          ],
-          "id": "1397082da9db6e488a1c-461af900527dd3da1d2d",
-          "file": "gym.spec.ts",
-          "line": 8,
-          "column": 1
-        },
-        {
-          "title": "E2E-04: gia hạn hiển thị thời hạn nối tiếp",
-          "ok": true,
-          "tags": [],
-          "tests": [
-            {
-              "timeout": 45000,
-              "annotations": [],
-              "expectedStatus": "passed",
-              "projectId": "",
-              "projectName": "",
-              "results": [],
-              "status": "skipped"
-            }
-          ],
-          "id": "1397082da9db6e488a1c-cc2aca73d47bfcb7be22",
-          "file": "gym.spec.ts",
-          "line": 9,
-          "column": 1
-        },
-        {
-          "title": "E2E-05: thêm thiết bị rồi chuyển bảo trì",
-          "ok": true,
-          "tags": [],
-          "tests": [
-            {
-              "timeout": 45000,
-              "annotations": [],
-              "expectedStatus": "passed",
-              "projectId": "",
-              "projectName": "",
-              "results": [],
-              "status": "skipped"
-            }
-          ],
-          "id": "1397082da9db6e488a1c-176c7c34c92ebcd5b7a0",
-          "file": "gym.spec.ts",
-          "line": 10,
-          "column": 1
-        },
-        {
-          "title": "E2E-06: CRUD huấn luyện viên",
-          "ok": true,
-          "tags": [],
-          "tests": [
-            {
-              "timeout": 45000,
-              "annotations": [],
-              "expectedStatus": "passed",
-              "projectId": "",
-              "projectName": "",
-              "results": [],
-              "status": "skipped"
-            }
-          ],
-          "id": "1397082da9db6e488a1c-f11a774a109c8acb4eec",
-          "file": "gym.spec.ts",
-          "line": 11,
-          "column": 1
-        },
-        {
-          "title": "E2E-07: lưu trữ và khôi phục hội viên",
-          "ok": true,
-          "tags": [],
-          "tests": [
-            {
-              "timeout": 45000,
-              "annotations": [],
-              "expectedStatus": "passed",
-              "projectId": "",
-              "projectName": "",
-              "results": [],
-              "status": "skipped"
-            }
-          ],
-          "id": "1397082da9db6e488a1c-5a7171a4cb123d0180df",
-          "file": "gym.spec.ts",
-          "line": 12,
-          "column": 1
-        },
-        {
-          "title": "E2E-08: HLV bị chặn URL quản trị và giao dịch",
-          "ok": true,
-          "tags": [],
-          "tests": [
-            {
-              "timeout": 45000,
-              "annotations": [],
-              "expectedStatus": "passed",
-              "projectId": "",
-              "projectName": "",
-              "results": [],
-              "status": "skipped"
-            }
-          ],
-          "id": "1397082da9db6e488a1c-e2696ff8eb4b05f72218",
-          "file": "gym.spec.ts",
-          "line": 13,
-          "column": 1
-        },
-        {
-          "title": "E2E-09: đăng xuất làm mất phiên và chặn URL",
-          "ok": true,
-          "tags": [],
-          "tests": [
-            {
-              "timeout": 45000,
-              "annotations": [],
-              "expectedStatus": "passed",
-              "projectId": "",
-              "projectName": "",
-              "results": [],
-              "status": "skipped"
-            }
-          ],
-          "id": "1397082da9db6e488a1c-4b1fc2ec164f0e53b5fc",
-          "file": "gym.spec.ts",
-          "line": 14,
-          "column": 1
-        },
-        {
-          "title": "E2E-10: tìm kiếm, phân trang, CSV và màn hình điện thoại",
-          "ok": true,
-          "tags": [],
-          "tests": [
-            {
-              "timeout": 45000,
-              "annotations": [],
-              "expectedStatus": "passed",
-              "projectId": "",
-              "projectName": "",
-              "results": [],
-              "status": "skipped"
-            }
-          ],
-          "id": "1397082da9db6e488a1c-99a5661e564f57958c78",
-          "file": "gym.spec.ts",
-          "line": 15,
-          "column": 1
-        },
-        {
-          "title": "E2E-11: sai mật khẩu và trường bắt buộc",
-          "ok": true,
-          "tags": [],
-          "tests": [
-            {
-              "timeout": 45000,
-              "annotations": [],
-              "expectedStatus": "passed",
-              "projectId": "",
-              "projectName": "",
-              "results": [],
-              "status": "skipped"
-            }
-          ],
-          "id": "1397082da9db6e488a1c-3189be39cf86cc117f99",
-          "file": "gym.spec.ts",
-          "line": 16,
-          "column": 1
-        },
-        {
-          "title": "E2E-12: ảnh tổng quan và không lỗi JavaScript",
-          "ok": true,
-          "tags": [],
-          "tests": [
-            {
-              "timeout": 45000,
-              "annotations": [],
-              "expectedStatus": "passed",
-              "projectId": "",
-              "projectName": "",
-              "results": [],
-              "status": "skipped"
-            }
-          ],
-          "id": "1397082da9db6e488a1c-e1e89457e1cd36b4c1d4",
-          "file": "gym.spec.ts",
-          "line": 17,
+          "line": 60,
           "column": 1
         }
       ]
@@ -327,10 +126,10 @@
   ],
   "errors": [],
   "stats": {
-    "startTime": "2026-09-10T15:45:11.941Z",
-    "duration": 159.50400000000013,
-    "expected": 0,
-    "skipped": 12,
+    "startTime": "2026-09-18T00:43:26.347Z",
+    "duration": 17673.718999999997,
+    "expected": 1,
+    "skipped": 0,
     "unexpected": 0,
     "flaky": 0
   }

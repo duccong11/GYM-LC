@@ -26,10 +26,11 @@ for (const [name, kind] of Object.entries(resourceNames)) {
   );
   if (!['payments', 'checkins'].includes(name)) {
     router.put('/' + name + '/:id', writeResource(kind + '.save'));
-    if (name !== 'users')
-      router.delete('/' + name + '/:id', writeResource(kind + '.delete'));
+    router.delete('/' + name + '/:id', writeResource(kind + '.delete'));
   }
 }
+router.put('/payments/:id', writeResource('payment.update'));
+router.delete('/payments/:id', writeResource('payment.delete'));
 router.patch('/members/:id/archive', writeResource('member.archive'));
 router.patch('/plans/:id/toggle', writeResource('plan.toggle'));
 router.patch('/users/:id/toggle', writeResource('user.toggle'));

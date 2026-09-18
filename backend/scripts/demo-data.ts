@@ -50,13 +50,31 @@ export async function seedDemo(db: Database) {
           hash,
           '091100000' + i,
           username + '@example.com',
-          i === 0 ? 'Quản lý' : 'Lễ tân',
+          i === 0 ? 'Quản trị hệ thống' : 'Lễ tân',
           i === 0 ? 'ADMIN' : 'STAFF',
           1,
           now,
         ),
     );
   }
+  commands.push(
+    db
+      .prepare(
+        'INSERT IGNORE INTO accounts(id,name,username,password_hash,phone,email,position,role,active,created_at) VALUES(?,?,?,?,?,?,?,?,?,?)',
+      )
+      .bind(
+        'demo-v3-manager',
+        'Quản lý phòng GYM',
+        'manager',
+        await hashPassword('GymManager2026!'),
+        '0911000099',
+        'manager@example.com',
+        'Quản lý',
+        'MANAGER',
+        1,
+        now,
+      ),
+  );
   const coachNames = [
     'Nguyễn Mạnh Hùng',
     'Trần Thùy Dung',
