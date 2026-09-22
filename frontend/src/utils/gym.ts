@@ -1,4 +1,6 @@
 export type Member = {
+  trainer_id?: string | null;
+  trainer_name?: string | null;
   id: string;
   code?: string;
   name: string;

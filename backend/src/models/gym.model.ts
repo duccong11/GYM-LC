@@ -13,9 +13,9 @@ export async function snapshot(db: Database, user: User) {
         ? (
             await db
               .prepare(
-                "SELECT DISTINCT member_id FROM schedules WHERE trainer_id=? AND status='ACTIVE'",
+                "SELECT id AS member_id FROM members WHERE trainer_id=? UNION SELECT member_id FROM schedules WHERE trainer_id=? AND status='ACTIVE'",
               )
-              .bind(user.trainer_id || '')
+              .bind(user.trainer_id || '', user.trainer_id || '')
               .all<{ member_id: string }>()
           ).results.map((r) => r.member_id)
         : [];
@@ -31,7 +31,7 @@ export async function snapshot(db: Database, user: User) {
     ).results;
   const members = can('members')
     ? await read(
-        'SELECT * FROM members' +
+        'SELECT members.*, (SELECT name FROM trainers WHERE trainers.id=members.trainer_id) AS trainer_name FROM members' +
           (scoped ? ' WHERE id' + scope : '') +
           ' ORDER BY created_at DESC,id',
         scoped ? ids : [],

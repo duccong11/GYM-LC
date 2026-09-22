@@ -324,9 +324,10 @@ export default function GymApp({
             email: '',
             gender: 'Nam',
             birth_date: '',
+            trainer_id: '',
             address: '',
             ...Object.fromEntries(
-              Object.entries(value || {}).map(([k, v]) => [k, String(v)]),
+              Object.entries(value || {}).map(([k, v]) => [k, String(v ?? '')]),
             ),
           }
         : kind === 'plan'
@@ -492,6 +493,7 @@ export default function GymApp({
                         {m.name}
                       </button>
                       <small>{m.phone}</small>
+                      <small>HLV: {m.trainer_name || 'Chưa phân công'}</small>
                     </div>
                   </div>
                 </td>
@@ -1358,8 +1360,19 @@ export default function GymApp({
                 Địa chỉ
                 <input maxLength={250} {...field('address')} />
               </label>
+              <label className="full">
+                HLV phụ trách
+                <select aria-label="HLV phụ trách" {...field('trainer_id')}>
+                  <option value="">Chưa phân công HLV</option>
+                  {data.trainers.filter(t => t.active === 1 || t.id === form.trainer_id).map(t => (
+                    <option key={String(t.id)} value={String(t.id)} disabled={t.active !== 1}>
+                      {t.name} · {t.specialty}{t.active !== 1 ? ' (ngừng hoạt động)' : ''}
+                    </option>
+                  ))}
+                </select>
+              </label>
               <p className="muted full">
-                Sau khi lưu, chọn Gia hạn để đăng ký gói tập.
+                Có thể chọn HLV ngay hoặc phân công sau. Sau khi lưu, chọn Gia hạn để đăng ký gói tập.
               </p>
             </div>
           )}
@@ -1483,6 +1496,7 @@ export default function GymApp({
                   ['Mã hội viên', m.code || m.id],
                   ['Họ tên', m.name],
                   ['Ngày sinh', dateLabel(m.birth_date || '')],
+                  ['HLV phụ trách', m.trainer_name || 'Chưa phân công'],
                   ['Giới tính', m.gender],
                   ['Số điện thoại', m.phone],
                   ['Email', m.email || '—'],

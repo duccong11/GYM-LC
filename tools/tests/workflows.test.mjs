@@ -33,6 +33,23 @@ before(async () => {
   await new Promise((resolve) => server.once('listening', resolve));
   base = 'http://127.0.0.1:' + server.address().port;
 });
+test('Phân công HLV ngay khi tạo hội viên, đổi/bỏ phân công và kiểm soát phạm vi', async () => {
+  const coach = await run({action:'trainer.save',name:'Assigned coach',phone:phone(),specialty:'Gym',experience:2,schedule:'Thứ 2–7',active:1});
+  const body = {action:'member.save',name:'Assigned member',phone:phone(),trainer_id:coach.id};
+  const member = await run(body,'STAFF');
+  let data = await transaction(db => snapshot(db,{...actor,role:'TRAINER',trainer_id:coach.id}));
+  assert(data.members.some(x => x.id===member.id && x.trainer_name==='Assigned coach'));
+  await rejected(()=>run({...body,phone:phone(),trainer_id:'missing-coach'}),400);
+  await rejected(()=>run({action:'trainer.delete',id:coach.id}),409);
+  await run({action:'member.save',id:member.id,name:body.name,phone:body.phone},'STAFF');
+  data = await transaction(db => snapshot(db,{...actor,role:'TRAINER',trainer_id:coach.id}));
+  assert(data.members.some(x => x.id===member.id));
+  await run({...body,id:member.id,trainer_id:''},'STAFF');
+  data = await transaction(db => snapshot(db,{...actor,role:'TRAINER',trainer_id:coach.id}));
+  assert(!data.members.some(x => x.id===member.id));
+  await run({action:'trainer.delete',id:coach.id});
+});
+
 after(async () => {
   if (server) await new Promise((resolve) => server.close(resolve));
   await pool.end();

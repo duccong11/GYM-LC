@@ -35,6 +35,7 @@ export async function migrateWorkflows() {
       );
       await add('payments', 'cancelled', 'TINYINT NOT NULL DEFAULT 0');
       await add('payments', 'registration_id', 'VARCHAR(80) NULL');
+      await add('members', 'trainer_id', 'VARCHAR(80) NULL');
       const sql = readFileSync(
         new URL('../../sql/03_actor_workflows.sql', import.meta.url),
         'utf8',
@@ -103,6 +104,7 @@ export async function migrateWorkflows() {
         );
       }
       const constraints = [
+        ['members', 'members_trainer_fk', 'FOREIGN KEY(trainer_id) REFERENCES trainers(id)'],
         [
           'accounts',
           'accounts_member_link_fk',

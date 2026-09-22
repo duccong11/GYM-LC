@@ -4,6 +4,8 @@ Cập nhật 18/09/2026, đối chiếu Nhom3_TestCaseDacTa.docx và yêu cầu 
 
 ## 1. Actor
 
+Cập nhật phân công HLV: form thêm/sửa hội viên có trường HLV phụ trách (có thể để Chưa phân công). Quản lý/Nhân viên được gán hoặc đổi HLV đang hoạt động. `members.trainer_id` liên kết `trainers.id`; tên HLV hiển thị tại danh sách và chi tiết hội viên. HLV được đọc hội viên trực tiếp được phân công, ngoài những hội viên trong lịch được giao. Không tự tạo lịch tập khi chọn HLV. Không được xóa/ngừng HLV còn phụ trách hội viên chưa lưu trữ; cần chuyển hoặc bỏ phân công trước.
+
 | Actor | Trách nhiệm | Giới hạn |
 |---|---|---|
 | Khách | Đăng ký tài khoản hội viên, đăng nhập | Không tự chọn quyền quản trị |

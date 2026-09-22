@@ -48,6 +48,7 @@ test('E2E-01: đăng nhập và thêm hội viên từ biểu mẫu', async ({ p
   await modal.getByLabel('Số điện thoại *', { exact: true }).fill('0' + u);
   await modal.getByLabel('Ngày sinh', { exact: true }).fill('2000-01-01');
   await modal.getByLabel('Địa chỉ', { exact: true }).fill('Hà Nội');
+  await modal.getByLabel('HLV phụ trách', { exact: true }).selectOption('demo-v2-trainer-0');
   await modal
     .getByRole('button', { name: 'Lưu thông tin', exact: true })
     .click();
@@ -56,6 +57,8 @@ test('E2E-01: đăng nhập và thêm hội viên từ biểu mẫu', async ({ p
   await expect(
     page.getByRole('button', { name: 'Hội viên UI ' + u, exact: true }),
   ).toBeVisible();
+  const saved = await (await page.request.get('/api/gym')).json();
+  expect(saved.members.find((m: {name:string}) => m.name === 'Hội viên UI '+u).trainer_id).toBe('demo-v2-trainer-0');
 });
 test('E2E-02: đăng ký và thu tiền qua giao diện', async ({ page }) => {
   await login(page);
