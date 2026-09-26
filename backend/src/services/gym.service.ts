@@ -34,8 +34,19 @@ async function actCore(db: Database, b: Record<string, unknown>, actor: User) {
     const m = validateMember(b),
       birth = dateField(b.birth_date, 'Ngày sinh', false),
       address = stringField(b, 'address', 'Địa chỉ', 0, 250);
-    const trainerId = b.trainer_id === undefined ? undefined : stringField(b, 'trainer_id', 'HLV phụ trách', 0, 80) || null;
-    if (trainerId && !await db.prepare('SELECT id FROM trainers WHERE id=? AND active=1 AND deleted=0').bind(trainerId).first())
+    const trainerId =
+      b.trainer_id === undefined
+        ? undefined
+        : stringField(b, 'trainer_id', 'HLV phụ trách', 0, 80) || null;
+    if (
+      trainerId &&
+      !(await db
+        .prepare(
+          'SELECT id FROM trainers WHERE id=? AND active=1 AND deleted=0',
+        )
+        .bind(trainerId)
+        .first())
+    )
       fail('HLV không tồn tại hoặc đã ngừng hoạt động.');
     if (birth && (birth > today || birth < '1900-01-01'))
       fail('Ngày sinh phải từ 1900 đến hôm nay.');
@@ -80,10 +91,25 @@ async function actCore(db: Database, b: Record<string, unknown>, actor: User) {
         )
         .run();
     if (trainerId !== undefined)
-      await db.prepare('UPDATE members SET trainer_id=? WHERE id=?').bind(trainerId, String(b.id || id)).run();
+      await db
+        .prepare('UPDATE members SET trainer_id=? WHERE id=?')
+        .bind(trainerId, String(b.id || id))
+        .run();
     return { ok: true, id: b.id || id };
   }
   if (action === 'member.archive' || action === 'member.delete') {
+    if (b.archived !== undefined && typeof b.archived !== 'boolean')
+      fail('Trạng thái lưu trữ phải là boolean.');
+    if (
+      b.archived !== false &&
+      (await db
+        .prepare(
+          'SELECT id FROM checkins WHERE member_id=? AND checkout_at IS NULL AND legacy_closed=0',
+        )
+        .bind(String(b.id))
+        .first())
+    )
+      fail('Cần check-out trước khi lưu trữ hội viên đang tập.', 409);
     if (
       b.archived !== false &&
       (await db
@@ -320,8 +346,19 @@ async function actCore(db: Database, b: Record<string, unknown>, actor: User) {
     table = kinds[kind];
   if (table && ['save', 'delete'].includes(operation)) {
     if (operation === 'delete') {
-      if (kind === 'trainer' && await db.prepare('SELECT id FROM members WHERE trainer_id=? AND archived=0 LIMIT 1').bind(String(b.id)).first())
-        fail('HLV đang phụ trách hội viên. Hãy chuyển hoặc bỏ phân công trước.', 409);
+      if (
+        kind === 'trainer' &&
+        (await db
+          .prepare(
+            'SELECT id FROM members WHERE trainer_id=? AND archived=0 LIMIT 1',
+          )
+          .bind(String(b.id))
+          .first())
+      )
+        fail(
+          'HLV đang phụ trách hội viên. Hãy chuyển hoặc bỏ phân công trước.',
+          409,
+        );
       if (
         ['trainer', 'room'].includes(kind) &&
         (await db
@@ -352,8 +389,21 @@ async function actCore(db: Database, b: Record<string, unknown>, actor: User) {
       return { ok: true };
     }
     const data = validateEntity(kind, b);
-    if (kind === 'trainer' && b.id && data.active === 0 && await db.prepare('SELECT id FROM members WHERE trainer_id=? AND archived=0 LIMIT 1').bind(String(b.id)).first())
-      fail('HLV đang phụ trách hội viên. Hãy chuyển hoặc bỏ phân công trước.', 409);
+    if (
+      kind === 'trainer' &&
+      b.id &&
+      data.active === 0 &&
+      (await db
+        .prepare(
+          'SELECT id FROM members WHERE trainer_id=? AND archived=0 LIMIT 1',
+        )
+        .bind(String(b.id))
+        .first())
+    )
+      fail(
+        'HLV đang phụ trách hội viên. Hãy chuyển hoặc bỏ phân công trước.',
+        409,
+      );
     if (
       kind === 'trainer' &&
       data.email &&

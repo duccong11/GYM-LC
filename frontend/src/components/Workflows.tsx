@@ -6,6 +6,8 @@ import {
   type User,
 } from '../utils/security';
 import { money, dateLabel, todayVN } from '../utils/gym';
+import RevenueReport from './RevenueReport';
+import ScheduleBoard, { type Schedule } from './ScheduleBoard';
 type Row = Record<string, any>;
 type Props = {
   kind: string;
@@ -53,6 +55,7 @@ export default function Workflows({ kind, data, user, mutate }: Props) {
     [error, setError] = useState(''),
     [busy, setBusy] = useState(false),
     [status, setStatus] = useState('');
+  const [scheduleView, setScheduleView] = useState('calendar');
   const singular: Record<string, string> = {
     registrations: 'registration',
     schedules: 'schedule',
@@ -107,13 +110,17 @@ export default function Workflows({ kind, data, user, mutate }: Props) {
           (!from ||
             String(
               kind === 'reports' || kind === 'payments'
-                ? (r.created_at ? todayVN(new Date(r.created_at)) : '')
+                ? r.created_at
+                  ? todayVN(new Date(r.created_at))
+                  : ''
                 : r.date || r.start_date || r.created_at,
             ).slice(0, 10) >= from) &&
           (!to ||
             String(
               kind === 'reports' || kind === 'payments'
-                ? (r.created_at ? todayVN(new Date(r.created_at)) : '')
+                ? r.created_at
+                  ? todayVN(new Date(r.created_at))
+                  : ''
                 : r.date || r.start_date || r.created_at,
             ).slice(0, 10) <= to),
       );
@@ -170,7 +177,7 @@ export default function Workflows({ kind, data, user, mutate }: Props) {
       return dateLabel(String(val || ''));
     return String(val ?? '—');
   }
-  function open(row?: Row) {
+  function open(row?: Row, defaults: Row = {}) {
     setError('');
     setEditing(!!row);
     setForm(
@@ -195,6 +202,7 @@ export default function Workflows({ kind, data, user, mutate }: Props) {
             method: 'Tiền mặt',
             request_id: crypto.randomUUID(),
             ...(kind === 'system' ? data.system?.[0] : {}),
+            ...defaults,
           },
     );
   }
@@ -250,29 +258,6 @@ export default function Workflows({ kind, data, user, mutate }: Props) {
       setBusy(false);
     }
   }
-  function exportCsv() {
-    const safe = (v: any) =>
-      '"' +
-      String(v ?? '')
-        .replace(/^[=+@-]/, "'$&")
-        .replaceAll('"', '""') +
-      '"';
-    const lines = [
-      columns.map((k) => labels[k] || k),
-      ...filtered.map((r) => columns.map((k) => name(k, r[k]))),
-    ];
-    const a = document.createElement('a'),
-      url = URL.createObjectURL(
-        new Blob(
-          ['\ufeff' + lines.map((r) => r.map(safe).join(',')).join('\r\n')],
-          { type: 'text/csv;charset=utf-8' },
-        ),
-      );
-    a.href = url;
-    a.download = 'Bao-cao-GYM.csv';
-    a.click();
-    URL.revokeObjectURL(url);
-  }
   const fields =
     kind === 'registrations'
       ? ['code', 'member_id', 'plan_id', 'start_date']
@@ -307,7 +292,28 @@ export default function Workflows({ kind, data, user, mutate }: Props) {
         : !r.archived && r.active !== 0 && !r.deleted,
     );
   };
-  return (
+  function selectValue(key: string, value: string) {
+    setForm((previous) => {
+      if (!previous) return previous;
+      const next = { ...previous, [key]: value };
+      if (kind === 'schedules' && key === 'member_id') {
+        const member = (data.members || []).find(
+          (row: Row) => row.id === value,
+        );
+        next.trainer_id =
+          choices('trainer_id')?.find((row) => row.id === member?.trainer_id)
+            ?.id || '';
+      }
+      return next;
+    });
+  }
+  return kind === 'reports' ? (
+    <RevenueReport
+      payments={data.payments || []}
+      registrations={data.registrations || []}
+      today={data.today}
+    />
+  ) : (
     <article className="panel workflow-panel">
       {kind === 'system' && (
         <>
@@ -360,36 +366,6 @@ export default function Workflows({ kind, data, user, mutate }: Props) {
             </table>
           </div>
           <h3>Nhật ký hệ thống (200 thao tác gần nhất)</h3>
-        </>
-      )}
-      {kind === 'reports' && (
-        <>
-          <h2>Báo cáo hoạt động</h2>
-          <p>
-            Doanh thu thực thu; không tính giao dịch đã hủy. Lọc theo ngày tạo
-            thanh toán.
-          </p>
-          <strong>
-            {filtered.length} giao dịch ·{' '}
-            {money(filtered.reduce((n, r) => n + Number(r.amount), 0))}
-          </strong>
-          <p>
-            Hội viên:{' '}
-            {data.members?.filter((r: Row) => !r.archived).length || 0} · Đăng
-            ký đang hoạt động:{' '}
-            {data.registrations?.filter(
-              (r: Row) =>
-                r.status === 'ACTIVE' &&
-                r.start_date <= data.today &&
-                r.end_date >= data.today,
-            ).length || 0}
-          </p>
-          <button onClick={exportCsv} disabled={!!rangeError}>
-            Xuất CSV
-          </button>{' '}
-          <button onClick={() => window.print()} disabled={!!rangeError}>
-            In / Lưu PDF
-          </button>
         </>
       )}
       <div className="toolbar">
@@ -462,72 +438,127 @@ export default function Workflows({ kind, data, user, mutate }: Props) {
           {error || rangeError}
         </p>
       )}
-      <div className="table-wrap">
-        <table>
-          <thead>
-            <tr>
-              {columns.map((k) => (
-                <th key={k}>{labels[k] || k}</th>
-              ))}
-              {entity && <th>Thao tác</th>}
-            </tr>
-          </thead>
-          <tbody>
-            {(kind==='reports'?filtered:filtered.slice((current - 1) * 10, current * 10)).map((r,index) => (
-              <tr className={kind==='reports'&&(index<(current-1)*10||index>=current*10)?'print-only-row':undefined} key={r.id + '-' + (r.resource || '')}>
-                {columns.map((k) => (
-                  <td key={k} title={String(r[k] ?? '')}>
-                    {k === 'id'
-                      ? String(r[k]).slice(0, 8)
-                      : ['member_id', 'trainer_id', 'room_id'].includes(k) &&
-                          r[k.replace('_id', '_name')]
-                        ? r[k.replace('_id', '_name')]
-                        : name(k, r[k])}
-                  </td>
+      {kind === 'schedules' && (
+        <>
+          <div className="toolbar">
+            <button
+              aria-pressed={scheduleView === 'calendar'}
+              onClick={() => setScheduleView('calendar')}
+            >
+              Lịch theo HLV
+            </button>
+            <button
+              aria-pressed={scheduleView === 'list'}
+              onClick={() => setScheduleView('list')}
+            >
+              Danh sách
+            </button>
+          </div>
+          {scheduleView === 'calendar' && (
+            <ScheduleBoard
+              rows={filtered as Schedule[]}
+              trainers={data.trainers || []}
+              today={data.today}
+              canEdit={canMutate(user.role, 'schedule.save')}
+              canCancel={canMutate(user.role, 'schedule.delete')}
+              busy={busy}
+              onEdit={open}
+              onCancel={cancel}
+              onCreate={(trainer_id, date) =>
+                open(undefined, { trainer_id, date })
+              }
+            />
+          )}
+        </>
+      )}
+      {(kind !== 'schedules' || scheduleView === 'list') && (
+        <>
+          <div className="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  {columns.map((k) => (
+                    <th key={k}>{labels[k] || k}</th>
+                  ))}
+                  {entity && <th>Thao tác</th>}
+                </tr>
+              </thead>
+              <tbody>
+                {(kind === 'reports'
+                  ? filtered
+                  : filtered.slice((current - 1) * 10, current * 10)
+                ).map((r, index) => (
+                  <tr
+                    className={
+                      kind === 'reports' &&
+                      (index < (current - 1) * 10 || index >= current * 10)
+                        ? 'print-only-row'
+                        : undefined
+                    }
+                    key={r.id + '-' + (r.resource || '')}
+                  >
+                    {columns.map((k) => (
+                      <td key={k} title={String(r[k] ?? '')}>
+                        {k === 'id'
+                          ? String(r[k]).slice(0, 8)
+                          : ['member_id', 'trainer_id', 'room_id'].includes(
+                                k,
+                              ) && r[k.replace('_id', '_name')]
+                            ? r[k.replace('_id', '_name')]
+                            : name(k, r[k])}
+                      </td>
+                    ))}
+                    {entity && (
+                      <td>
+                        {canMutate(
+                          user.role,
+                          entity +
+                            '.' +
+                            (kind === 'payments' ? 'update' : 'save'),
+                        ) &&
+                          r.status !== 'CANCELLED' &&
+                          (kind !== 'registrations' ||
+                            r.status === 'PENDING') && (
+                            <button onClick={() => open(r)} disabled={busy}>
+                              Sửa
+                            </button>
+                          )}
+                        {canMutate(user.role, entity + '.delete') &&
+                          r.status !== 'CANCELLED' && (
+                            <button onClick={() => cancel(r)} disabled={busy}>
+                              Hủy
+                            </button>
+                          )}
+                      </td>
+                    )}
+                  </tr>
                 ))}
-                {entity && (
-                  <td>
-                    {canMutate(
-                      user.role,
-                      entity + '.' + (kind === 'payments' ? 'update' : 'save'),
-                    ) &&
-                      r.status !== 'CANCELLED' &&
-                      (kind !== 'registrations' || r.status === 'PENDING') && (
-                        <button onClick={() => open(r)} disabled={busy}>
-                          Sửa
-                        </button>
-                      )}
-                    {canMutate(user.role, entity + '.delete') &&
-                      r.status !== 'CANCELLED' && (
-                        <button onClick={() => cancel(r)} disabled={busy}>
-                          Hủy
-                        </button>
-                      )}
-                  </td>
-                )}
-              </tr>
-            ))}
-          </tbody>
-        </table>
-        {!filtered.length && (
-          <p className="muted">Không tìm thấy dữ liệu phù hợp.</p>
-        )}
-      </div>
-      <div className="toolbar">
-        <button disabled={current <= 1} onClick={() => setPage(current - 1)}>
-          Trước
-        </button>
-        <span>
-          Trang {current}/{Math.max(1, Math.ceil(filtered.length / 10))} ·{' '}
-          {filtered.length} bản ghi
-        </span>
-        <button
-          disabled={current * 10 >= filtered.length}
-          onClick={() => setPage(current + 1)}
-        >
-          Sau
-        </button>
-      </div>
+              </tbody>
+            </table>
+            {!filtered.length && (
+              <p className="muted">Không tìm thấy dữ liệu phù hợp.</p>
+            )}
+          </div>
+          <div className="toolbar">
+            <button
+              disabled={current <= 1}
+              onClick={() => setPage(current - 1)}
+            >
+              Trước
+            </button>
+            <span>
+              Trang {current}/{Math.max(1, Math.ceil(filtered.length / 10))} ·{' '}
+              {filtered.length} bản ghi
+            </span>
+            <button
+              disabled={current * 10 >= filtered.length}
+              onClick={() => setPage(current + 1)}
+            >
+              Sau
+            </button>
+          </div>
+        </>
+      )}
       {form && (
         <div className="workflow-overlay">
           <form
@@ -555,9 +586,7 @@ export default function Workflows({ kind, data, user, mutate }: Props) {
                     aria-label={labels[key] || 'Đăng ký chờ thanh toán'}
                     required
                     value={form[key] || ''}
-                    onChange={(e) =>
-                      setForm({ ...form, [key]: e.target.value })
-                    }
+                    onChange={(e) => selectValue(key, e.target.value)}
                   >
                     <option value="">Chọn...</option>
                     {choices(key)!.map((r) => (
@@ -604,6 +633,13 @@ export default function Workflows({ kind, data, user, mutate }: Props) {
                 )}
               </label>
             ))}
+            {kind === 'schedules' && (
+              <p className="muted">
+                Chọn hội viên để điền HLV phụ trách đang hoạt động. Bạn có thể
+                đổi HLV cho buổi tập này; phân công phụ trách của hội viên vẫn
+                giữ nguyên.
+              </p>
+            )}
             {error && (
               <p role="alert" className="form-error">
                 {error}

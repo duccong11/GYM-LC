@@ -1,6 +1,6 @@
 import { spawnSync } from 'node:child_process';
 for (const args of [
-  ['--test', 'tools/tests/gym.test.mjs', 'tools/tests/validation.test.mjs'],
+  ['--test', 'tools/tests/gym.test.mjs', 'tools/tests/validation.test.mjs', 'tools/tests/reports.test.mjs'],
   ['--test', 'tools/tests/mysql.test.mjs'],
   ['--test', 'tools/tests/workflows.test.mjs'],
   ['tools/tests/system.test.mjs'],

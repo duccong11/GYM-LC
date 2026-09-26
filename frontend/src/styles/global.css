@@ -1342,3 +1342,48 @@ select {
 }
 
 .print-only-row{display:none}@media print{.print-only-row{display:table-row}.workflow-panel .table-wrap{overflow:visible}.workflow-panel table{min-width:0}.workflow-panel tr{break-inside:avoid}}
+
+.report-heading { display:flex; justify-content:space-between; gap:20px; align-items:flex-start; }
+.report-heading h2 { font-size:26px; margin:8px 0; }
+.revenue-report .toolbar label { display:grid; gap:6px; }
+.revenue-stats { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:16px; margin:24px 0; }
+.revenue-stats>div { background:#202a22; border:1px solid #39493b; border-radius:14px; padding:20px; display:grid; gap:12px; align-content:start; grid-template-rows:20px 36px auto; }
+.revenue-stats strong { font-size:25px; color:#c3f65b; overflow-wrap:anywhere; }
+.revenue-stats span,.revenue-stats small { color:#acb9af; }
+.top-plans { margin:28px 0; }
+.top-plan-grid { list-style:none; padding:0; display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:16px; }
+.top-plan-grid li { border:1px solid #3c493f; border-radius:12px; padding:20px; }
+.top-plan-grid h4 { margin:12px 0; font-size:17px; }
+.plan-rank { color:#c3f65b; font-weight:700; }
+.plan-meter { height:7px; background:#354037; border-radius:5px; margin-top:16px; overflow:hidden; }
+.plan-meter i { display:block; height:100%; background:#c3f65b; }
+.schedule-board .toolbar { align-items:center; }
+.schedule-board .toolbar label { display:flex; gap:8px; align-items:center; }
+.calendar-scroll { border:1px solid #d8e0db; border-radius:12px; margin-top:16px; }
+.workflow-panel .calendar-table { table-layout:fixed; min-width:1000px; width:100%; border-collapse:separate; border-spacing:0; background:#fff; color:#25312a; }
+.calendar-table th,.calendar-table td { border-right:1px solid #e0e5e1; border-bottom:1px solid #e0e5e1; padding:10px; vertical-align:top; white-space:normal; }
+.calendar-table thead th { background:#f4f6f5; color:#28372e; text-align:center; font-size:13px; height:65px; }
+.calendar-table th:first-child { position:sticky; left:0; z-index:2; width:185px; background:#f7f9f7; color:#25312a; }
+.calendar-table tbody th { font-weight:600; padding:18px 12px; font-size:14px; }
+.calendar-table small,.session-card span { display:block; margin-top:5px; }
+.session-card small { color:inherit; opacity:.85; }
+.calendar-table td { height:130px; }
+.calendar-table .calendar-today { background:#fff9e5; }
+.coach-initial { display:inline-grid; place-items:center; width:28px; height:28px; margin-right:8px; border-radius:50%; background:#dcebe1; }
+.session-card { padding:10px; border-radius:6px; margin-bottom:8px; font-size:12px; line-height:1.5; border-left:3px solid #278a83; background:#ccefeb; color:#173f3b; overflow-wrap:anywhere; }
+.session-color-1 { background:#e3defc; border-color:#8265d1; color:#392d5a; }
+.session-color-2 { background:#ffe1ec; border-color:#ca6790; color:#652b43; }
+.session-color-3 { background:#ffebc5; border-color:#c9912a; color:#5f431d; }
+.session-cancelled { opacity:.6; text-decoration:line-through; }
+.session-actions { display:flex; gap:4px; margin-top:8px; flex-wrap:wrap; }
+.session-actions button { padding:3px 5px; font-size:12px; background:#ffffffa0; color:inherit; border:1px solid #0002; white-space:nowrap; flex:0 0 auto; }
+.add-session { padding:6px; font-size:12px; color:#38644a; background:transparent; border:1px dashed #aec5b6; width:100%; }
+.workflow-panel button[aria-pressed="true"] { background:#c3f65b; color:#172219; }
+@media(max-width:800px) { .revenue-stats,.top-plan-grid { grid-template-columns:1fr 1fr; } .report-heading { flex-direction:column; } }
+@media(max-width:520px) { .revenue-stats,.top-plan-grid { grid-template-columns:1fr; } }
+@media(max-width:520px) {
+  .schedule-board .toolbar { flex-direction:row; justify-content:flex-start; }
+  .schedule-board .toolbar>button,.schedule-board .toolbar>select { width:auto; flex:0 0 auto; }
+  .schedule-board .toolbar>label,.schedule-board .toolbar>select[aria-label="Lọc huấn luyện viên"] { width:100%; }
+}
+@media print { .revenue-stats>div,.top-plan-grid li { background:#fff; color:#000; border-color:#ccc; } .revenue-stats strong,.revenue-stats span,.revenue-stats small,.plan-rank { color:#000; } .report-heading .row-actions { display:none; } }

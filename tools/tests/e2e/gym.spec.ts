@@ -34,6 +34,254 @@ async function setupMember(page: Page) {
   });
   return { id: m.id, name: 'E2E ' + u };
 }
+
+test('E2E-14: báo cáo doanh thu ngày/tháng/năm, xuất CSV và kiểm tra khoảng ngày', async ({
+  page,
+}) => {
+  await login(page);
+  const state = await (await page.request.get('/api/gym')).json();
+  await page.goto('/reports');
+  await expect(
+    page.getByRole('heading', { name: 'Báo cáo doanh thu', exact: true }),
+  ).toBeVisible();
+  await page.getByRole('button', { name: 'Năm nay', exact: true }).click();
+  const first = state.today.slice(0, 4) + '-01-01';
+  const revenue = state.payments
+    .filter((p: { created_at: string; cancelled?: number }) => {
+      const d = new Intl.DateTimeFormat('en-CA', {
+        timeZone: 'Asia/Ho_Chi_Minh',
+      }).format(new Date(p.created_at));
+      return !p.cancelled && d >= first && d <= state.today;
+    })
+    .reduce((n: number, p: { amount: number }) => n + Number(p.amount), 0);
+  await expect(page.getByTestId('revenue-total')).toHaveText(
+    new Intl.NumberFormat('vi-VN', {
+      style: 'currency',
+      currency: 'VND',
+      maximumFractionDigits: 0,
+    }).format(revenue),
+  );
+  for (const group of ['day', 'month', 'year']) {
+    await page.getByLabel('Tổng hợp theo').selectOption(group);
+    await expect(
+      page.getByRole('table', { name: 'Doanh thu theo kỳ' }),
+    ).toBeVisible();
+  }
+  await expect(
+    page.getByRole('heading', { name: '3 gói tập được chọn nhiều nhất' }),
+  ).toBeVisible();
+  const download = page.waitForEvent('download');
+  await page.getByRole('button', { name: 'Xuất CSV', exact: true }).click();
+  const file = await download;
+  expect(file.suggestedFilename()).toContain('Doanh-thu-');
+  await file.saveAs('outputs/revenue-report-test.csv');
+  await page.screenshot({
+    path: 'outputs/revenue-report-desktop.png',
+    fullPage: true,
+  });
+  await page.getByLabel('Từ ngày', { exact: true }).fill('2099-01-01');
+  await expect(page.getByRole('alert')).toContainText('đúng thứ tự');
+  await expect(
+    page.getByRole('button', { name: 'Xuất CSV', exact: true }),
+  ).toBeDisabled();
+  await page.getByRole('button', { name: 'Tháng này', exact: true }).click();
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.screenshot({
+    path: 'outputs/revenue-report-mobile.png',
+    fullPage: true,
+  });
+  expect(
+    await page.evaluate(
+      () => document.documentElement.scrollWidth <= window.innerWidth + 1,
+    ),
+  ).toBe(true);
+});
+
+test('E2E-15: lịch tuần tạo từ ô ngày, sửa/hủy và chuyển tuần', async ({
+  page,
+}) => {
+  await login(page);
+  const u = unique();
+  const coach = await api(page, {
+    action: 'trainer.save',
+    name: 'Calendar coach ' + u,
+    phone: '08' + u.slice(-8),
+    specialty: 'Gym',
+    experience: 2,
+    schedule: 'Thứ 2–7',
+    active: 1,
+  });
+  const member = await api(page, {
+    action: 'member.save',
+    name: 'Calendar member ' + u,
+    phone: '07' + u.slice(-8),
+    trainer_id: coach.id,
+  });
+  const room = await api(page, {
+    action: 'room.save',
+    name: 'Calendar room ' + u,
+    type: 'Gym',
+    capacity: 5,
+    description: '',
+    active: 1,
+  });
+  const plan = await api(page, {
+    action: 'plan.save',
+    name: 'Calendar plan ' + u,
+    days: 1,
+    price: 0,
+  });
+  const state = await (await page.request.get('/api/gym')).json();
+  await api(page, {
+    action: 'registration.save',
+    member_id: member.id,
+    plan_id: plan.id,
+    start_date: state.today,
+  });
+  await page.goto('/schedules');
+  await page.getByLabel('Lọc huấn luyện viên').selectOption(coach.id);
+  await page
+    .getByRole('button', {
+      name: `Thêm lịch Calendar coach ${u} ngày ${state.today}`,
+      exact: true,
+    })
+    .click();
+  const dialog = page.getByRole('dialog');
+  await expect(
+    dialog.getByLabel('Huấn luyện viên', { exact: true }),
+  ).toHaveValue(coach.id);
+  await expect(dialog.getByLabel('Ngày tập', { exact: true })).toHaveValue(
+    state.today,
+  );
+  await dialog.getByLabel('Hội viên', { exact: true }).selectOption(member.id);
+  await dialog.getByLabel('Phòng', { exact: true }).selectOption(room.id);
+  await dialog.getByRole('button', { name: 'Lưu', exact: true }).click();
+  await expect(dialog).not.toBeVisible();
+  const card = page
+    .locator('.session-card')
+    .filter({ hasText: 'Calendar member ' + u });
+  await expect(card).toBeVisible();
+  await card.getByRole('button', { name: 'Sửa', exact: true }).click();
+  await dialog.getByLabel('Ghi chú', { exact: true }).fill('Tập sức bền');
+  await dialog.getByRole('button', { name: 'Lưu', exact: true }).click();
+  await expect(card).toContainText('Tập sức bền');
+  await page.screenshot({
+    path: 'outputs/schedule-board-desktop.png',
+    fullPage: true,
+  });
+  await page.getByRole('button', { name: 'Kỳ sau', exact: true }).click();
+  await expect(card).toHaveCount(0);
+  await page.getByRole('button', { name: 'Hôm nay', exact: true }).click();
+  await expect(card).toBeVisible();
+  page.once('dialog', (d) => d.accept());
+  await card.getByRole('button', { name: 'Hủy', exact: true }).click();
+  await expect(card).toContainText('Đã hủy');
+  await expect(
+    card.getByRole('button', { name: 'Sửa', exact: true }),
+  ).toHaveCount(0);
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.screenshot({
+    path: 'outputs/schedule-board-mobile.png',
+    fullPage: true,
+  });
+  expect(
+    await page.evaluate(
+      () => document.documentElement.scrollWidth <= window.innerWidth + 1,
+    ),
+  ).toBe(true);
+});
+
+test('E2E-13: lịch tập gợi ý HLV phụ trách, đổi hội viên và cho phép chọn HLV khác', async ({
+  page,
+}) => {
+  await login(page);
+  const u = unique();
+  const coachA = await api(page, {
+    action: 'trainer.save',
+    name: 'Coach A ' + u,
+    phone: '08' + u.slice(-8),
+    specialty: 'Gym',
+    experience: 2,
+    schedule: 'Thứ 2–7',
+    active: 1,
+  });
+  const coachB = await api(page, {
+    action: 'trainer.save',
+    name: 'Coach B ' + u,
+    phone: '07' + u.slice(-8),
+    specialty: 'Gym',
+    experience: 2,
+    schedule: 'Thứ 2–7',
+    active: 1,
+  });
+  const memberA = await api(page, {
+    action: 'member.save',
+    name: 'Assigned A ' + u,
+    phone: '06' + u.slice(-8),
+    trainer_id: coachA.id,
+  });
+  const memberB = await api(page, {
+    action: 'member.save',
+    name: 'Assigned B ' + u,
+    phone: '05' + u.slice(-8),
+    trainer_id: coachB.id,
+  });
+  const unassigned = await setupMember(page);
+  const room = await api(page, {
+    action: 'room.save',
+    name: 'Schedule room ' + u,
+    type: 'Gym',
+    capacity: 5,
+    description: '',
+    active: 1,
+  });
+  const plan = await api(page, {
+    action: 'plan.save',
+    name: 'Schedule plan ' + u,
+    days: 1,
+    price: 0,
+  });
+  const initial = await (await page.request.get('/api/gym')).json();
+  await api(page, {
+    action: 'registration.save',
+    member_id: memberA.id,
+    plan_id: plan.id,
+    start_date: initial.today,
+  });
+  await page.goto('/schedules');
+  await page
+    .getByRole('button', { name: 'Thêm lịch tập', exact: true })
+    .click();
+  const dialog = page.getByRole('dialog');
+  const member = dialog.getByLabel('Hội viên', { exact: true });
+  const trainer = dialog.getByLabel('Huấn luyện viên', { exact: true });
+  await member.selectOption(memberA.id);
+  await expect(trainer).toHaveValue(coachA.id);
+  await member.selectOption(memberB.id);
+  await expect(trainer).toHaveValue(coachB.id);
+  await member.selectOption(unassigned.id);
+  await expect(trainer).toHaveValue('');
+  await member.selectOption(memberA.id);
+  await trainer.selectOption(coachB.id);
+  await dialog.getByLabel('Phòng', { exact: true }).selectOption(room.id);
+  await dialog.getByRole('button', { name: 'Lưu', exact: true }).click();
+  await expect(dialog).not.toBeVisible();
+  const saved = await (await page.request.get('/api/gym')).json();
+  expect(
+    saved.schedules.find(
+      (row: { member_id: string }) => row.member_id === memberA.id,
+    ).trainer_id,
+  ).toBe(coachB.id);
+  expect(
+    saved.members.find((row: { id: string }) => row.id === memberA.id)
+      .trainer_id,
+  ).toBe(coachA.id);
+  await page.getByLabel('Tìm kiếm', { exact: true }).fill('Assigned A ' + u);
+  await page.getByRole('button', { name: 'Sửa', exact: true }).click();
+  await expect(
+    dialog.getByLabel('Huấn luyện viên', { exact: true }),
+  ).toHaveValue(coachB.id);
+});
 test('E2E-01: đăng nhập và thêm hội viên từ biểu mẫu', async ({ page }) => {
   await login(page);
   await page.getByRole('button', { name: 'Hội viên', exact: true }).click();
@@ -48,7 +296,9 @@ test('E2E-01: đăng nhập và thêm hội viên từ biểu mẫu', async ({ p
   await modal.getByLabel('Số điện thoại *', { exact: true }).fill('0' + u);
   await modal.getByLabel('Ngày sinh', { exact: true }).fill('2000-01-01');
   await modal.getByLabel('Địa chỉ', { exact: true }).fill('Hà Nội');
-  await modal.getByLabel('HLV phụ trách', { exact: true }).selectOption('demo-v2-trainer-0');
+  await modal
+    .getByLabel('HLV phụ trách', { exact: true })
+    .selectOption('demo-v2-trainer-0');
   await modal
     .getByRole('button', { name: 'Lưu thông tin', exact: true })
     .click();
@@ -58,7 +308,10 @@ test('E2E-01: đăng nhập và thêm hội viên từ biểu mẫu', async ({ p
     page.getByRole('button', { name: 'Hội viên UI ' + u, exact: true }),
   ).toBeVisible();
   const saved = await (await page.request.get('/api/gym')).json();
-  expect(saved.members.find((m: {name:string}) => m.name === 'Hội viên UI '+u).trainer_id).toBe('demo-v2-trainer-0');
+  expect(
+    saved.members.find((m: { name: string }) => m.name === 'Hội viên UI ' + u)
+      .trainer_id,
+  ).toBe('demo-v2-trainer-0');
 });
 test('E2E-02: đăng ký và thu tiền qua giao diện', async ({ page }) => {
   await login(page);

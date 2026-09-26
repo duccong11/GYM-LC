@@ -14,7 +14,7 @@
     "db:setup": "node tools/scripts/db.mjs",
     "db:demo": "node tools/scripts/db.mjs --demo",
     "db:test": "node tools/scripts/db.mjs --test --demo",
-    "test": "node --test tools/tests/gym.test.mjs tools/tests/validation.test.mjs",
+    "test": "node --test tools/tests/gym.test.mjs tools/tests/validation.test.mjs tools/tests/reports.test.mjs",
     "test:mysql": "node tools/tests/mysql.test.mjs",
     "test:system": "node tools/tests/system.test.mjs",
     "test:e2e": "playwright test --config tools/tests/playwright.config.ts",

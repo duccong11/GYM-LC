@@ -34,20 +34,54 @@ before(async () => {
   base = 'http://127.0.0.1:' + server.address().port;
 });
 test('Phân công HLV ngay khi tạo hội viên, đổi/bỏ phân công và kiểm soát phạm vi', async () => {
-  const coach = await run({action:'trainer.save',name:'Assigned coach',phone:phone(),specialty:'Gym',experience:2,schedule:'Thứ 2–7',active:1});
-  const body = {action:'member.save',name:'Assigned member',phone:phone(),trainer_id:coach.id};
-  const member = await run(body,'STAFF');
-  let data = await transaction(db => snapshot(db,{...actor,role:'TRAINER',trainer_id:coach.id}));
-  assert(data.members.some(x => x.id===member.id && x.trainer_name==='Assigned coach'));
-  await rejected(()=>run({...body,phone:phone(),trainer_id:'missing-coach'}),400);
-  await rejected(()=>run({action:'trainer.delete',id:coach.id}),409);
-  await run({action:'member.save',id:member.id,name:body.name,phone:body.phone},'STAFF');
-  data = await transaction(db => snapshot(db,{...actor,role:'TRAINER',trainer_id:coach.id}));
-  assert(data.members.some(x => x.id===member.id));
-  await run({...body,id:member.id,trainer_id:''},'STAFF');
-  data = await transaction(db => snapshot(db,{...actor,role:'TRAINER',trainer_id:coach.id}));
-  assert(!data.members.some(x => x.id===member.id));
-  await run({action:'trainer.delete',id:coach.id});
+  const coach = await run({
+    action: 'trainer.save',
+    name: 'Assigned coach',
+    phone: phone(),
+    specialty: 'Gym',
+    experience: 2,
+    schedule: 'Thứ 2–7',
+    active: 1,
+  });
+  const body = {
+    action: 'member.save',
+    name: 'Assigned member',
+    phone: phone(),
+    trainer_id: coach.id,
+  };
+  const member = await run(body, 'STAFF');
+  let data = await transaction((db) =>
+    snapshot(db, { ...actor, role: 'TRAINER', trainer_id: coach.id }),
+  );
+  assert(
+    data.members.some(
+      (x) => x.id === member.id && x.trainer_name === 'Assigned coach',
+    ),
+  );
+  await rejected(
+    () => run({ ...body, phone: phone(), trainer_id: 'missing-coach' }),
+    400,
+  );
+  await rejected(() => run({ action: 'trainer.delete', id: coach.id }), 409);
+  await run(
+    {
+      action: 'member.save',
+      id: member.id,
+      name: body.name,
+      phone: body.phone,
+    },
+    'STAFF',
+  );
+  data = await transaction((db) =>
+    snapshot(db, { ...actor, role: 'TRAINER', trainer_id: coach.id }),
+  );
+  assert(data.members.some((x) => x.id === member.id));
+  await run({ ...body, id: member.id, trainer_id: '' }, 'STAFF');
+  data = await transaction((db) =>
+    snapshot(db, { ...actor, role: 'TRAINER', trainer_id: coach.id }),
+  );
+  assert(!data.members.some((x) => x.id === member.id));
+  await run({ action: 'trainer.delete', id: coach.id });
 });
 
 after(async () => {
@@ -349,4 +383,48 @@ test('Gói miễn phí kích hoạt đăng ký, không tạo doanh thu; hủy th
     () => run({ action: 'checkin.create', member_id: freeMember.id }),
     400,
   );
+});
+
+test('Lưu trữ: chặn phiên tập đang mở, cho phép sau check-out và khôi phục', async () => {
+  const member = await run({
+    action: 'member.save',
+    name: 'Archive visit test',
+    phone: phone(),
+  });
+  const plan = await run({
+    action: 'plan.save',
+    name: 'Archive test plan',
+    days: 1,
+    price: 0,
+  });
+  await run({
+    action: 'registration.save',
+    member_id: member.id,
+    plan_id: plan.id,
+    start_date: todayVN(),
+  });
+  await run({ action: 'checkin.create', member_id: member.id });
+  for (const action of ['member.archive', 'member.delete'])
+    await rejected(() => run({ action, id: member.id }), 409);
+  let [rows] = await pool.query('SELECT archived FROM members WHERE id=?', [
+    member.id,
+  ]);
+  assert.equal(rows[0].archived, 0);
+  await rejected(
+    () => run({ action: 'member.archive', id: member.id, archived: 'false' }),
+    400,
+  );
+  await run({ action: 'checkin.checkout', member_id: member.id });
+  await run({ action: 'member.archive', id: member.id });
+  [rows] = await pool.query('SELECT archived FROM members WHERE id=?', [
+    member.id,
+  ]);
+  assert.equal(rows[0].archived, 1);
+  await rejected(
+    () => run({ action: 'checkin.create', member_id: member.id }),
+    400,
+  );
+  await run({ action: 'member.archive', id: member.id, archived: false });
+  await run({ action: 'checkin.create', member_id: member.id });
+  await run({ action: 'checkin.checkout', member_id: member.id });
 });

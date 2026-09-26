@@ -25,7 +25,7 @@ Mã ADD/EDIT/DELETE/SEARCH theo tên use case trong tài liệu. DELETE nghiệp
 | AUTH-02 Đăng ký | Khách | Tạo MEMBER và hồ sơ mới; không chiếm hồ sơ có sẵn |
 | AUTH-03 Đăng xuất | Mọi actor đăng nhập | Vô hiệu phiên tại backend |
 | MEM-ADD, MEM-EDIT | Quản lý, Nhân viên | Thông tin hợp lệ, phone/email/mã không trùng |
-| MEM-DELETE | Quản lý | Lưu trữ/khôi phục; xử lý lịch sắp tới trước |
+| MEM-DELETE | Quản lý | Lưu trữ/khôi phục; check-out phiên đang mở và xử lý lịch sắp tới trước |
 | MEM-SEARCH | Quản lý, Nhân viên; HLV, Hội viên theo phạm vi | HLV chỉ hội viên được giao, MEMBER chỉ chính mình |
 | USR-ADD, USR-EDIT | Admin | Gán một trong 5 vai trò; MEMBER/TRAINER phải liên kết hồ sơ |
 | USR-DELETE | Admin | Khóa tài khoản và thu hồi phiên; giữ ít nhất một Admin |
@@ -41,13 +41,13 @@ Mã ADD/EDIT/DELETE/SEARCH theo tên use case trong tài liệu. DELETE nghiệp
 | PAY-SEARCH | Quản lý, Nhân viên | Phiếu thu còn hiệu lực |
 | TRN-ADD, TRN-EDIT, TRN-DELETE | Quản lý | Không xóa/ngừng HLV có lịch sắp tới chưa xử lý |
 | TRN-SEARCH | Quản lý, Nhân viên | Danh sách HLV |
-| SCH-ADD, SCH-EDIT | Quản lý, Nhân viên | Không trùng hội viên/HLV/phòng; gói còn hiệu lực |
+| SCH-ADD, SCH-EDIT | Quản lý, Nhân viên | Không trùng hội viên/HLV/phòng; gói còn hiệu lực. Chọn hội viên sẽ gợi ý HLV phụ trách đang hoạt động; được đổi HLV riêng cho buổi tập |
 | SCH-DELETE | Quản lý | Hủy mềm, giữ lịch sử |
 | SCH-SEARCH | Quản lý, Nhân viên, HLV, Hội viên | HLV lịch được giao; hội viên lịch của mình |
 | STS-VIEW, STS-SEARCH | Quản lý, Nhân viên, HLV, Hội viên theo phạm vi | Trạng thái tính từ thời hạn đăng ký đã kích hoạt |
 | STS-EDIT | Quản lý | Lưu trữ/khôi phục hồ sơ; không sửa tay thành “còn hạn” |
 | SRH-SEARCH | Quản lý, Nhân viên, HLV, Hội viên | Chỉ các nhóm dữ liệu đã được cấp quyền |
-| RPT-VIEW, RPT-EXPORT | Quản lý | Lọc ngày, doanh thu thực thu, xuất CSV hoặc in PDF |
+| RPT-VIEW, RPT-EXPORT | Quản lý | Lọc khoảng ngày, tổng hợp doanh thu ngày/tháng/năm, Top 3 gói được chọn, xuất CSV hoặc in PDF |
 | SYS-CONFIG, SYS-AUDIT | Admin | Cấu hình và 200 thao tác gần nhất |
 | CHECKIN/OUT | Quản lý, Nhân viên | Gói hiệu lực, một lượt mở/hội viên |
 | ROOM CRUD | Quản lý | Không xóa phòng còn thiết bị/lịch chưa xử lý |
@@ -60,7 +60,7 @@ Mã ADD/EDIT/DELETE/SEARCH theo tên use case trong tài liệu. DELETE nghiệp
 1. Nhân viên/Quản lý tạo hội viên và đăng ký gói; hệ thống chốt tên, giá, thời hạn.
 2. Gói có phí: đăng ký PENDING, chưa được vào tập. Thu tiền tại Thanh toán, chọn đăng ký đang chờ → ACTIVE.
 3. Gói giá 0: ACTIVE ngay, không lập phiếu thu, không cộng doanh thu.
-4. Tạo lịch trong thời hạn có hiệu lực. Thời lượng 30–180 phút; lịch sát nhau được phép, giao nhau bị chặn.
+4. Tạo lịch trong thời hạn có hiệu lực. Thời lượng 30–180 phút; lịch sát nhau được phép, giao nhau bị chặn. Màn hình lịch mặc định là bảng tuần theo HLV, có chuyển ngày/tuần, lọc HLV, thêm từ ô ngày và chuyển sang danh sách. Chọn hội viên gợi ý HLV phụ trách; có thể đổi HLV cho riêng buổi tập.
 5. HLV chỉ thấy lịch được phân công; hội viên chỉ thấy lịch của chính mình.
 6. Hủy phiếu thu cần lý do; phải hủy lịch liên quan và check-out trước. Đăng ký chuyển CANCELLED, không còn quyền vào tập.
 
