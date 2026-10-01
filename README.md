@@ -90,6 +90,20 @@ pnpm test
 pnpm build
 ```
 
+## Selenium Automation Test
+
+Bộ UI test Selenium + TestNG nằm trong [automation-tests](automation-tests/README.md). Website và dữ liệu demo phải đang chạy trước khi test:
+
+```powershell
+pnpm db:demo
+pnpm dev
+có thể chạy node tools/scripts/dev.mjs
+cd automation-tests
+.\gradlew.bat test --rerun-tasks
+```
+
+`pnpm dev` phải được giữ chạy ở Terminal 1. Nếu báo `Port 3000 is already in use` thì website đã chạy sẵn, không cần chạy lại `pnpm dev`; mở Terminal 2 vào `automation-tests` để chạy test.
+
 Để chạy MySQL/System/E2E, tạo backend/.env.test từ backend/.env.test.example và điền kết nối đến DB kiểm thử riêng:
 
 ```powershell

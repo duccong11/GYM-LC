@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.gymlc.GymLoginTest" tests="3" skipped="0" failures="0" errors="0" timestamp="2026-09-28T07:58:56.438Z" hostname="DESKTOP-V83NEED" time="3.545">
+  <properties/>
+  <testcase name="invalidPasswordShowsError" classname="com.gymlc.GymLoginTest" time="0.292"/>
+  <testcase name="loginWithDemoAccount" classname="com.gymlc.GymLoginTest" time="0.406"/>
+  <testcase name="logoutReturnsToLogin" classname="com.gymlc.GymLoginTest" time="0.948"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[Sep 28, 2026 2:58:56 PM org.openqa.selenium.devtools.CdpVersionFinder findNearestMatch
+WARNING: Unable to find CDP implementation matching 154
+Sep 28, 2026 2:58:56 PM org.openqa.selenium.chromium.ChromiumDriver lambda$new$4
+WARNING: Unable to find version of CDP to use for 154.0.8037.58. You may need to include a dependency on a specific version of the CDP using something similar to `org.seleniumhq.selenium:selenium-devtools-v86:4.35.0` where the version ("v86") matches the version of the chromium-based browser you're using and the version number of the artifact is the same as Selenium's.
+Sep 28, 2026 2:58:57 PM org.openqa.selenium.devtools.CdpVersionFinder findNearestMatch
+WARNING: Unable to find CDP implementation matching 154
+Sep 28, 2026 2:58:57 PM org.openqa.selenium.chromium.ChromiumDriver lambda$new$4
+WARNING: Unable to find version of CDP to use for 154.0.8037.58. You may need to include a dependency on a specific version of the CDP using something similar to `org.seleniumhq.selenium:selenium-devtools-v86:4.35.0` where the version ("v86") matches the version of the chromium-based browser you're using and the version number of the artifact is the same as Selenium's.
+Sep 28, 2026 2:58:58 PM org.openqa.selenium.devtools.CdpVersionFinder findNearestMatch
+WARNING: Unable to find CDP implementation matching 154
+Sep 28, 2026 2:58:58 PM org.openqa.selenium.chromium.ChromiumDriver lambda$new$4
+WARNING: Unable to find version of CDP to use for 154.0.8037.58. You may need to include a dependency on a specific version of the CDP using something similar to `org.seleniumhq.selenium:selenium-devtools-v86:4.35.0` where the version ("v86") matches the version of the chromium-based browser you're using and the version number of the artifact is the same as Selenium's.
+]]></system-err>
+</testsuite>
