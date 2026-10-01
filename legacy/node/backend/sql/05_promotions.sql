@@ -1,0 +1,10 @@
+CREATE TABLE IF NOT EXISTS promotions (
+ id VARCHAR(80) PRIMARY KEY,
+ name VARCHAR(100) NOT NULL,
+ percent INT NOT NULL CHECK (percent BETWEEN 1 AND 100),
+ start_date DATE NOT NULL,
+ end_date DATE NOT NULL,
+ active TINYINT NOT NULL DEFAULT 1,
+ deleted TINYINT NOT NULL DEFAULT 0,
+ CHECK (end_date >= start_date)
+);

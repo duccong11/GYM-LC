@@ -1,0 +1,66 @@
+import assert from 'node:assert/strict';
+import {mkdirSync,writeFileSync} from 'node:fs';
+const base='http://127.0.0.1:4100', results=[];
+async function call(path,body,session={},status=200,method='POST'){
+  const r=await fetch(base+path,{method,headers:{Origin:base,'Content-Type':'application/json',Cookie:session.cookie||'','X-CSRF-Token':session.csrf||''},...(body===undefined?{}:{body:JSON.stringify(body)})});
+  const raw=await r.text();let d;try{d=JSON.parse(raw);}catch{d={error:raw.slice(0,120)};}
+  assert.equal(r.status,status,`${method} ${path} ${body?.action||''}: ${JSON.stringify(d)}`);results.push({name:`${method} ${path} ${body?.action||''}`,expected:status,actual:r.status});return {r,d};
+}
+async function login(username,password){const {r,d}=await call('/api/auth',{action:'login',username,password});return{cookie:r.headers.get('set-cookie').split(';')[0],csrf:d.csrf};}
+const mutation=async(session,action,data={},status=200)=>(await call('/api/gym',{action,...data},session,status)).d;
+const health=(await call('/api/health',undefined,{},200,'GET')).d;assert.equal(health.backend,'java');
+await call('/api/gym',undefined,{},401,'GET');
+await call('/api/auth',[],{},400);
+const admin=await login('admin','GymAdmin2026!'),manager=await login('manager','GymManager2026!'),staff=await login('staff1','GymStaff2026!'),trainer=await login('coach1','GymCoach2026!'),member=await login('member1','GymMember2026!');
+await mutation(admin,'member.save',{},403);await mutation(manager,'user.save',{},403);await mutation(staff,'plan.save',{},403);await mutation(trainer,'schedule.save',{},403);await mutation(member,'payment.create',{},403);
+await mutation({...manager,csrf:'wrong'},'member.save',{},403);
+for(const [session,resource] of [[manager,'users'],[staff,'users'],[trainer,'payments'],[member,'payments']])await call('/api/'+resource,undefined,session,403,'GET');
+const day=new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Ho_Chi_Minh',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date());const suffix=String(Date.now()).slice(-7),phone='090'+suffix;
+const svc=await mutation(manager,'service.save',{name:'Java Test '+suffix,description:'API migration',active:1});
+const t=await mutation(manager,'trainer.save',{name:'HLV Java',phone:'091'+suffix,email:'',experience:5,schedule:'06:00–20:00',active:1,service_ids:[svc.id]});
+const m=await mutation(staff,'member.save',{name:'Hội viên Java',phone,email:'',gender:'Nam',trainer_id:t.id});
+const room=await mutation(manager,'room.save',{name:'Phòng Java',type:'Gym',capacity:10,description:'',active:1});
+const equipment=await mutation(manager,'equipment.save',{name:'Tạ Java',room_id:room.id,quantity:2,purchased_at:day,condition:'Tốt'});
+await mutation(manager,'room.delete',{id:room.id},409);
+const plan=await mutation(manager,'plan.save',{name:'Gói Java',days:30,price:100000,description:''});
+const promo=await mutation(manager,'promotion.save',{name:'Lễ Java',percent:20,start_date:day,end_date:day,active:1});
+const reg=await mutation(staff,'registration.save',{member_id:m.id,plan_id:plan.id,start_date:day});
+const registration=(await call('/api/registrations/'+reg.id,undefined,manager,200,'GET')).d;assert.equal(registration.price,80000);
+await mutation(staff,'registration.save',{member_id:m.id,plan_id:plan.id,start_date:day},409);
+await mutation(staff,'checkin.create',{member_id:m.id},400);
+const payload={registration_id:reg.id,method:'Tiền mặt',request_id:crypto.randomUUID()};
+const payment=await mutation(staff,'payment.create',payload);
+assert.equal((await mutation(staff,'payment.create',payload)).id,payment.id);
+await mutation(staff,'payment.create',{...payload,method:'Chuyển khoản'},409);
+const sch={member_id:m.id,trainer_id:t.id,room_id:room.id,service_id:svc.id,date:day,start_time:'10:00',end_time:'11:00',note:''};
+const schedule=await mutation(staff,'schedule.save',sch);
+await mutation(staff,'schedule.save',sch,409);
+await mutation(staff,'schedule.save',{...sch,start_time:'11:00',end_time:'11:10'},400);
+await mutation(staff,'schedule.save',{...sch,service_id:'demo-boxing'},400);
+await mutation(manager,'service.delete',{id:svc.id},409);
+await mutation(manager,'trainer.delete',{id:t.id},409);
+await mutation(manager,'payment.delete',{id:payment.id,reason:'Hủy kiểm thử'},409);
+await mutation(staff,'checkin.create',{member_id:m.id});
+await mutation(staff,'checkin.create',{member_id:m.id},409);
+await mutation(manager,'member.archive',{id:m.id,archived:true},409);
+await call('/api/checkins/checkout',{member_id:m.id},staff);
+await mutation(manager,'schedule.delete',{id:schedule.id});
+await mutation(manager,'payment.update',{id:payment.id,method:'Chuyển khoản',amount:5},409);
+await mutation(manager,'payment.update',{id:payment.id,method:'Chuyển khoản'});
+await mutation(manager,'payment.delete',{id:payment.id,reason:'Hủy kiểm thử'});
+await mutation(staff,'payment.create',payload,409);
+const free=await mutation(manager,'plan.save',{name:'Gói miễn phí',days:1,price:0,description:''});
+await mutation(manager,'registration.save',{member_id:m.id,plan_id:free.id,start_date:day});
+await mutation(staff,'checkin.create',{member_id:m.id});await mutation(staff,'checkin.checkout',{member_id:m.id});
+await mutation(manager,'equipment.delete',{id:equipment.id});await mutation(manager,'room.delete',{id:room.id});
+await mutation(manager,'member.save',{id:m.id,name:'Hội viên Java',phone,email:'',gender:'Nam',trainer_id:''});
+await mutation(manager,'trainer.delete',{id:t.id});await mutation(manager,'service.delete',{id:svc.id});await mutation(manager,'promotion.delete',{id:promo.id});
+await mutation(manager,'member.archive',{id:m.id,archived:true});
+const account=await mutation(admin,'user.save',{name:'Nhân viên Java',username:'java'+suffix,password:'JavaTest2026!',phone:'092'+suffix,email:'',role:'STAFF',position:'Lễ tân',active:1});
+const newStaff=await login('java'+suffix,'JavaTest2026!');await mutation(admin,'user.toggle',{id:account.id,active:false});await call('/api/gym',undefined,newStaff,401,'GET');
+await mutation(admin,'user.toggle',{id:'demo-admin',active:false},409);
+await mutation(admin,'system.save',{gym_name:'GYM Java Test',opening_hours:'05:00–22:00'});
+for(const s of [admin,manager,staff,trainer,member]){const snapshot=(await call('/api/gym',undefined,s,200,'GET')).d;assert(!JSON.stringify(snapshot).includes('password_hash'));if(s===admin)assert.equal(snapshot.members.length,0);if(s===trainer||s===member)assert(snapshot.payments.every(p=>p.amount===0));}
+await call('/api/auth',{action:'logout'},admin);await call('/api/auth',undefined,admin,401,'GET');
+const wrong='wrong'+suffix;for(let i=0;i<5;i++)await call('/api/auth',{action:'login',username:wrong,password:'Wrong2026!'}, {},401);await call('/api/auth',{action:'login',username:wrong,password:'Wrong2026!'}, {},429);
+mkdirSync('outputs/java-migration',{recursive:true});writeFileSync('outputs/java-migration/api-results.json',JSON.stringify({executedAt:new Date().toISOString(),checks:results.length,results},null,2));console.log(`PASS ${results.length} Java/MySQL API checks`);

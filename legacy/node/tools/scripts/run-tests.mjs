@@ -1,0 +1,18 @@
+import { spawnSync } from 'node:child_process';
+for (const args of [
+  ['--test', 'tools/tests/gym.test.mjs', 'tools/tests/validation.test.mjs', 'tools/tests/reports.test.mjs'],
+  ['--test', 'tools/tests/mysql.test.mjs'],
+  ['--test', 'tools/tests/workflows.test.mjs'],
+  ['--test', 'tools/tests/services.test.mjs'],
+  ['tools/tests/system.test.mjs'],
+  [
+    'node_modules/@playwright/test/cli.js',
+    'test',
+    '--config',
+    'tools/tests/playwright.config.ts',
+  ],
+  ['tools/scripts/build.mjs'],
+]) {
+  const r = spawnSync(process.execPath, args, { stdio: 'inherit' });
+  if (r.status !== 0) process.exit(r.status || 1);
+}

@@ -35,6 +35,11 @@ next-env.d.ts
 /dist/
 /.wrangler/
 /outputs/
+/target/
+.env
+.env.test
+/exports/*.sql
+/hs_err_pid*.log
 /work/
 
 *.tsbuildinfo

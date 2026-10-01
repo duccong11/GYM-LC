@@ -6,24 +6,13 @@
     "node": ">=22.18.0"
   },
   "scripts": {
-    "dev": "node tools/scripts/dev.mjs",
-    "build": "node tools/scripts/build.mjs",
-    "start": "node backend/src/server.ts",
-    "dev:backend": "node backend/src/server.ts",
-    "dev:frontend": "vite frontend --config frontend/vite.config.ts",
-    "db:setup": "node tools/scripts/db.mjs",
-    "db:demo": "node tools/scripts/db.mjs --demo",
-    "db:test": "node tools/scripts/db.mjs --test --demo",
-    "test": "node --test tools/tests/gym.test.mjs tools/tests/validation.test.mjs tools/tests/reports.test.mjs",
-    "test:mysql": "node tools/tests/mysql.test.mjs",
-    "test:system": "node tools/tests/system.test.mjs",
-    "test:e2e": "playwright test --config tools/tests/playwright.config.ts",
-    "typecheck": "node node_modules/typescript/bin/tsc --noEmit -p backend/tsconfig.json && node node_modules/typescript/bin/tsc --noEmit -p frontend/tsconfig.json",
-    "lint": "oxlint -c tools/scripts/config/.oxlintrc.json backend/src frontend/src",
-    "format": "oxfmt --config tools/scripts/config/.oxfmtrc.json backend frontend scripts tests",
-    "test:all": "node tools/scripts/run-tests.mjs",
-    "test:workflows": "node --test tools/tests/workflows.test.mjs",
-    "db:migrate": "node backend/scripts/migrate.ts"
+    "dev": "node scripts/dev.mjs",
+    "build": "node scripts/build.mjs",
+    "test": "mvn test",
+    "start": "java -jar target/gym-lc-1.0.0.jar",
+    "dev:frontend": "vite src/main/webapp --config src/main/webapp/vite.config.ts",
+    "dev:backend": "mvn spring-boot:run",
+    "typecheck": "tsc --noEmit -p src/main/webapp/tsconfig.json"
   },
   "dependencies": {
     "dotenv": "^17.4.2",

@@ -11,7 +11,7 @@ Cập nhật phân công HLV: form thêm/sửa hội viên có trường HLV ph�
 | Khách | Đăng ký tài khoản hội viên, đăng nhập | Không tự chọn quyền quản trị |
 | ADMIN — Quản trị hệ thống | Tạo/sửa/khóa tài khoản; gán vai trò và liên kết hồ sơ; cấu hình tên/giờ hoạt động; đọc nhật ký | Không quản lý hội viên, gói, lịch tập, thu tiền hay báo cáo doanh thu |
 | MANAGER — Quản lý | Điều hành nghiệp vụ, danh mục, xử lý hủy và báo cáo | Không quản lý tài khoản hoặc phân quyền |
-| STAFF — Nhân viên | Tiếp nhận/sửa hội viên, đăng ký gói, thu tiền, xếp lịch, điểm danh, cập nhật thiết bị | Không hủy giao dịch/đăng ký/lịch; không đổi giá gói hoặc phân quyền |
+| STAFF — Nhân viên | Tiếp nhận/sửa hội viên, đăng ký gói, thu tiền, xếp lịch, điểm danh; chỉ xem danh mục dịch vụ, gói tập, HLV, phòng và thiết bị | Không hủy giao dịch/đăng ký/lịch; không đổi giá gói hoặc phân quyền |
 | TRAINER — Huấn luyện viên | Xem lịch được giao và hội viên trong lịch đó; tra cứu gói/phòng | Chỉ đọc; không thấy doanh thu và tài khoản |
 | MEMBER — Hội viên | Xem hồ sơ, đăng ký, lịch và trạng thái của chính mình; tra cứu gói | Không xem người khác, không tự ghi nhận thanh toán |
 
@@ -51,7 +51,7 @@ Mã ADD/EDIT/DELETE/SEARCH theo tên use case trong tài liệu. DELETE nghiệp
 | SYS-CONFIG, SYS-AUDIT | Admin | Cấu hình và 200 thao tác gần nhất |
 | CHECKIN/OUT | Quản lý, Nhân viên | Gói hiệu lực, một lượt mở/hội viên |
 | ROOM CRUD | Quản lý | Không xóa phòng còn thiết bị/lịch chưa xử lý |
-| EQUIPMENT ADD/EDIT | Quản lý, Nhân viên | Phòng hoạt động, số lượng hợp lệ |
+| EQUIPMENT ADD/EDIT | Quản lý | Phòng hoạt động, số lượng hợp lệ |
 | EQUIPMENT DELETE | Quản lý | Xóa mềm |
 
 ## 3. Luồng nghiệp vụ và ngoại lệ
@@ -128,3 +128,7 @@ node tools/scripts/build.mjs
 - TypeScript và build frontend đạt.
 - Lint toàn dự án chưa sạch: còn các lỗi quy tắc kiểu dữ liệu (any, stringify unknown, FormEvent) và cấu hình Next.js cũ trong dự án React/Vite. Không coi kết quả lint là PASS.
 - File Word/Excel kiểm thử cũ không được tự đánh dấu lại PASS theo phiên bản mới; dùng ma trận actor trong tài liệu này để cập nhật khi nộp.
+
+## Cách xem lịch theo HLV
+
+Khi mở lịch, chưa hiển thị hàng HLV. Chọn một HLV để xem lịch ngày/tuần của người đó; bỏ lựa chọn sẽ ẩn lịch. Khi tạo lịch, chọn dịch vụ, ngày và giờ trước rồi chọn HLV phù hợp và còn trống. HLV chỉ được xem hội viên và lịch thuộc phạm vi được phân công.

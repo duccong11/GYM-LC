@@ -1,49 +1,49 @@
-# Website quản lý phòng GYM — Java MVC
+# Website quản lý phòng GYM
 
-Java 17 + Spring Boot MVC + Maven + MySQL. Giao diện React được giữ trong `src/main/webapp`. Xem [kiến trúc MVC](docs/MVC.md) và [hướng dẫn cài đặt](docs/SETUP.md).
+Frontend React và backend Express TypeScript theo MVC, cơ sở dữ liệu **MySQL 8.0.16+**. Source đang dùng nằm trong hai thư mục **backend** và **frontend**.
 
-## Chạy trong VS Code
+## Phân quyền và nghiệp vụ mới
 
-Mở terminal tại thư mục dự án:
+Xem [Actor và use case](docs/ACTOR_USE_CASE.md). Admin chỉ quản lý tài khoản/phân quyền/hệ thống. Quản lý phụ trách nghiệp vụ và báo cáo; Nhân viên tiếp nhận/thu tiền; HLV và Hội viên xem dữ liệu trong phạm vi của mình.
 
-```powershell
-.\run-dev.cmd
-```
+Nâng cấp dữ liệu hiện có: `node backend/scripts/migrate.ts`, sau đó `node tools/scripts/dev.mjs`. Giữ nguyên `backend/.env`.
 
-Mở **http://localhost:3000**. Backend Java chạy cổng **4000**. Giữ terminal mở; `Ctrl+C` để dừng.
+## Chạy bằng VS Code
 
-Máy cần Java 17, Maven, Node.js 22+ và MySQL. Lần đầu trên máy mới chạy `npm install`, sao chép `.env.example` thành `.env` rồi điền mật khẩu MySQL. Không ghi đè `.env` nếu đã cấu hình.
-
-## Cấu trúc chính
-
-```text
-src/main/java/vn/edu/eaut/gym/  controller, service, dao, model, util...
-src/main/resources/           cấu hình và schema
-src/main/webapp/              giao diện
-src/test/java/                kiểm thử Java
-db/migrations/                SQL
-scripts/                      lệnh chạy và kiểm thử
-docs/                         tài liệu
-legacy/node/                  source Node cũ để đối chiếu
-pom.xml
-run-dev.cmd
-```
-
-Database đang có dữ liệu được sử dụng nguyên trạng. **Không chạy `--setup` trên database đã có bảng.** Công cụ sẽ từ chối khởi tạo lại để bảo vệ dữ liệu.
-
-## Build và kiểm thử
+Mở thư mục dự án, mở Terminal ở thư mục gốc:
 
 ```powershell
-npm run build
-mvn test
-java -jar target/gym-lc-1.0.0.jar
+pnpm install
+Copy-Item backend/.env.example backend/.env
 ```
 
-`npm run build` biên dịch View, kiểm tra TypeScript, chạy test Java và đóng gói cả hai vào JAR. Khi chạy JAR, mở http://localhost:4000 và cho phép Origin này trong `.env`.
+Nếu đã có backend/.env thì giữ file đó. Điền tài khoản và mật khẩu MySQL trong file này:
 
-Tài khoản trên database hiện có không thay đổi. Tài khoản demo trong hướng dẫn chỉ được tạo khi chủ động khởi tạo database mới với `--demo`.
+```dotenv
+DB_HOST=127.0.0.1
+DB_PORT=3306
+DB_NAME=quan_ly_phong_gym
+DB_USER=root
+DB_PASSWORD=mat_khau_mysql_cua_ban
+```
 
-<<<<<<< HEAD
+Sau đó:
+
+```powershell
+pnpm db:setup
+pnpm db:demo
+pnpm dev
+```
+
+- Website: http://localhost:3000
+- Backend: http://127.0.0.1:4000/api/health
+- Node cần 22.18+ hoặc 24. MySQL phải đang chạy.
+- Lần sau nhấp đúp Chay-GYM.cmd hoặc chạy pnpm dev.
+- Dừng bằng Ctrl+C. Có thể chạy riêng pnpm dev:backend và pnpm dev:frontend.
+- Tài khoản MySQL khác tài khoản đăng nhập website. Không đưa .env lên GitHub.
+
+## Đăng nhập minh họa
+
 Sau khi chạy db:demo hoặc nhập dữ liệu cũ:
 
 | Vai trò | Tài khoản | Mật khẩu minh họa |
@@ -90,20 +90,6 @@ pnpm test
 pnpm build
 ```
 
-## Selenium Automation Test
-
-Bộ UI test Selenium + TestNG nằm trong [automation-tests](automation-tests/README.md). Website và dữ liệu demo phải đang chạy trước khi test:
-
-```powershell
-pnpm db:demo
-pnpm dev
-có thể chạy node tools/scripts/dev.mjs
-cd automation-tests
-.\gradlew.bat test --rerun-tasks
-```
-
-`pnpm dev` phải được giữ chạy ở Terminal 1. Nếu báo `Port 3000 is already in use` thì website đã chạy sẵn, không cần chạy lại `pnpm dev`; mở Terminal 2 vào `automation-tests` để chạy test.
-
 Để chạy MySQL/System/E2E, tạo backend/.env.test từ backend/.env.test.example và điền kết nối đến DB kiểm thử riêng:
 
 ```powershell
@@ -124,6 +110,3 @@ pnpm build xuất frontend/dist và kiểm tra TypeScript backend. Backend chạ
 # Cấu trúc thư mục thực tế
 
 backend và frontend chứa code ứng dụng. docs chứa tài liệu. tools/scripts và tools/tests chứa công cụ chạy và kiểm thử. outputs giữ kết quả kiểm chứng và bản sao dữ liệu cũ; không phải source chạy chính. node_modules là thư viện cần để chạy. Các cache .next, .vinext, .pnpm-store và bản dist của nền tảng cũ đã được xóa thực tế. Dữ liệu SQLite gốc được giữ tại outputs/backups/d1-local.
-=======
-Thư mục `legacy` không tham gia Maven build. Các tài liệu cũ có đường dẫn `backend/` và `frontend/` mô tả phiên bản Node trước khi chuyển Java; tài liệu hiện hành là README, SETUP và MVC.
->>>>>>> 6157d18 (cong)
